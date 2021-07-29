@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>sdca</artifactId>
+        <groupId>com.xuanhuo</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>sdca-common</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>sdca-common-core</module>
+        <module>sdca-common-multidatasource</module>
+    </modules>
+
+    <description>通用模块</description>
+
+
+</project>

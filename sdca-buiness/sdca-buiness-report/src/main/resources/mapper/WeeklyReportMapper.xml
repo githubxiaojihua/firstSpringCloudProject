@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanhuo.mapper.WeeklyReportMapper">
+
+	<!-- 调用f_tj_sql来获取相关统计SQL -->
+	<select id="callSqlFunction" parameterType="map" statementType="CALLABLE">
+		{#{sql,jdbcType=VARCHAR,mode=OUT} =
+			call f_tj_sql(
+					#{bbbm,jdbcType=VARCHAR,mode=IN},
+					#{zbbm,jdbcType=VARCHAR,mode=IN},
+					#{ksrq,jdbcType=VARCHAR,mode=IN},
+					#{jsrq,jdbcType=VARCHAR,mode=IN}) }
+	</select>
+
+</mapper>

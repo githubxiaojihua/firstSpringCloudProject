@@ -1,0 +1,15 @@
+#服务配制
+server:
+  port: 8801
+  servlet:
+    context-path: /buinessReport
+
+#MyBatis配制
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.xuanhuo.domain
+
+# 日志配置
+logging:
+  level: {root: info,com.xuanhuo: debug}
+

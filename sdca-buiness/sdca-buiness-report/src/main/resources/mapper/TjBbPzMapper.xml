@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanhuo.mapper.TjBbPzMapper">
+
+	<resultMap type="com.xuanhuo.domain.TjBbPz" id="TjBbMap">
+        <result property="bm" column="bm" jdbcType="VARCHAR"/>
+        <result property="mc" column="mc" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+	<sql id="Base_Column_List">
+		bm,mc
+	</sql>
+
+	<!-- 根据机构 bm 获取 报表 -->
+	<select id="getTjBbPzByBm" resultMap="TjBbMap">
+		select 
+			<include refid="Base_Column_List"/>
+		from
+			tj_bb_pz
+		where 
+			bm = #{bm}
+	</select>
+
+</mapper>
