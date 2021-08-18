@@ -27,7 +27,7 @@ public class StaticDate {
         //默认为当前日期
         Date staticData = DateUtil.date();
         if(StrUtil.isNotEmpty(staticDate)){
-            staticData = DateUtil.parseDate(staticDate);
+            staticData = DateUtil.parse(staticDate,"yyyyMMdd");
         }
         this.setWarnStartDate(DateUtil.format(DateUtil.offsetDay(staticData,-7),"yyyyMMdd"));
         this.setWarnEndDate(DateUtil.format(DateUtil.offsetDay(staticData,-1),"yyyyMMdd"));

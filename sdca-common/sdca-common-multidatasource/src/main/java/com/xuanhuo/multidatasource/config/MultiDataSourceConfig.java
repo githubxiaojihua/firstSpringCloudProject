@@ -1,5 +1,6 @@
 package com.xuanhuo.multidatasource.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.xuanhuo.common.core.constant.DataSourceConstants;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -11,8 +12,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 
 import javax.sql.DataSource;
+import javax.xml.crypto.Data;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
@@ -37,6 +40,18 @@ public class MultiDataSourceConfig {
         return DataSourceBuilder.create().build();
     }
 
+    /**
+     * 生产环境的HIVE是1.1.0如果用springboot内置连接池会有问题，
+     * 需改成druid
+     * @return
+     */
+    @Bean(DataSourceConstants.DS_KEY_HIVE_1_1_0)
+    @ConfigurationProperties(prefix = "spring.datasource.hive110")
+    public DataSource hivepDataSource() {
+        DruidDataSource druidDataSource = new DruidDataSource();
+        return druidDataSource;
+    }
+
     @Bean
     @Primary
     public DataSource dynamicDataSource() {
@@ -44,6 +59,7 @@ public class MultiDataSourceConfig {
         dataSourceMap.put(DataSourceConstants.DS_KEY_SDFZ, sdfzDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_GDATA3, gdata3DataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_YMFXYP, ymfxypDataSource());
+        dataSourceMap.put(DataSourceConstants.DS_KEY_HIVE_1_1_0,hivepDataSource());
         //设置动态数据源
         MultiDataSource dynamicDataSource = new MultiDataSource();
         dynamicDataSource.setTargetDataSources(dataSourceMap);

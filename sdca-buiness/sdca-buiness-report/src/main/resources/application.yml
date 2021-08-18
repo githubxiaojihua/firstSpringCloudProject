@@ -13,3 +13,6 @@ mybatis:
 logging:
   level: {root: info,com.xuanhuo: debug}
 
+report:
+  serializable-file: ./serializableFile/weeklyReport.ser
+

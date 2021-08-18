@@ -1,26 +1,22 @@
 package com.xuanhuo.service.impl;
 
 import com.xuanhuo.common.core.constant.DataSourceConstants;
-import com.xuanhuo.common.core.constant.ReportConstants;
 import com.xuanhuo.mapper.NativeSqlMapper;
 import com.xuanhuo.mapper.WeeklyReportMapper;
 import com.xuanhuo.multidatasource.annotation.MultiDataSource;
-import com.xuanhuo.multidatasource.aop.MultiDataSourceAspect;
 import com.xuanhuo.service.WeeklyReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.Future;
 
 @Service
 public class WeeklyReportServiceImpl implements WeeklyReportService {
@@ -52,7 +48,8 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
      * @return
      */
     @MultiDataSource(DataSourceConstants.DS_KEY_SDFZ)
-    public List<Map<String, Object>> getSDFZSqlResult(String sql){
+    @Async("taskExecutor")
+    public Future<List<Map<String, Object>>> getSDFZSqlResult(String sql){
         return execNativeSql(sql);
     }
 
@@ -62,15 +59,38 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
      * @return
      */
     @MultiDataSource(DataSourceConstants.DS_KEY_GDATA3)
-    public List<Map<String, Object>> getGdata3SqlResult(String sql){
+    @Async("taskExecutor")
+    public Future<List<Map<String, Object>>> getGdata3SqlResult(String sql){
         return execNativeSql(sql);
     }
 
-    public List<Map<String,Object>> execNativeSql(String sql){
+    /**
+     * 在Hive数据库中执行SQL
+     * @param sql
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
+    @Async("taskExecutor")
+    public Future<List<Map<String, Object>>> getHiveSqlResult(String sql) {
+        return execNativeSql(sql);
+    }
+
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @Async("taskExecutor")
+    public Future<List<Map<String, Object>>> getYMFXYPSqlResult(String sql) {
+        return execNativeSql(sql);
+    }
+
+    /**
+     * 原生SQL执行
+     * @param sql
+     * @return
+     */
+    public Future<List<Map<String,Object>>> execNativeSql(String sql){
         logger.debug("======开始执行原生SQL");
-        //logger.debug("jdbcTemplate====={}",jdbcTemplate);
         List<Map<String, Object>> result = nativeSqlMapper.nativeSelectSql(sql);
-        //List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
         // TODO: 此部分需要使用mybatis拦截器实现
         for(Map<String,Object> map : result){
             for(Map.Entry<String,Object> entry :  map.entrySet()){
@@ -80,7 +100,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
             }
         }
         logger.debug("======原生SQL执行完成：{}",result);
-        return result;
+        return new AsyncResult<>(result);
     }
 
 
