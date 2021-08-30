@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MultiDataSource {
     /**
-     * 数据源名称
+     * 数据源名称，默认sdfz
      * @return
      */
     String value() default DataSourceConstants.DS_KEY_SDFZ;

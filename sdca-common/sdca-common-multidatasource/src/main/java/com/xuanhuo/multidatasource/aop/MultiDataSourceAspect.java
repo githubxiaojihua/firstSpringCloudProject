@@ -20,7 +20,7 @@ public class MultiDataSourceAspect {
 
     @Around("multiDataSourcePointCut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println("**************aop");
+        System.out.println("*******************进入多数据源AOP逻辑！！！！！");
         String dsKey = getAnnotation(joinPoint).value();
         MultiDataSourceContextHolder.setContextKey(dsKey);
         try{

@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@PropertySource("classpath:multiDataSource.properties")
+@PropertySource("classpath:multiDataSource-dev.properties")
 public class MultiDataSourceConfig {
 
     @Bean(DataSourceConstants.DS_KEY_SDFZ)
@@ -52,9 +52,14 @@ public class MultiDataSourceConfig {
         return druidDataSource;
     }
 
+    /**
+     * 设置动态数据源
+     * @return
+     */
     @Bean
     @Primary
     public DataSource dynamicDataSource() {
+        //初始化多数据源
         Map<Object, Object> dataSourceMap = new HashMap<>(2);
         dataSourceMap.put(DataSourceConstants.DS_KEY_SDFZ, sdfzDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_GDATA3, gdata3DataSource());

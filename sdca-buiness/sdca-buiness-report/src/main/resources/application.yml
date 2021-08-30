@@ -4,6 +4,23 @@ server:
   servlet:
     context-path: /buinessReport
 
+#spring及cloud配置
+spring:
+  application:
+    name: sdca-buiness-report
+  cloud:
+    nacos:
+      discovery:
+        #注册中心地址
+        server-addr: 127.0.0.1:8848
+
+#actuator监控设置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
 #MyBatis配制
 mybatis:
   mapper-locations: classpath*:mapper/*.xml
@@ -13,6 +30,7 @@ mybatis:
 logging:
   level: {root: info,com.xuanhuo: debug}
 
+#报表配置
 report:
   serializable-file: ./serializableFile/weeklyReport.ser
 

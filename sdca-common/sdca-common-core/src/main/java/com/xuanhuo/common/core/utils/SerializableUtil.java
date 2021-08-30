@@ -44,7 +44,7 @@ public class SerializableUtil<T extends Serializable> {
         }
         T serializable = null;
         try(ValidateObjectInputStream validateObjectInputStream = new ValidateObjectInputStream(new FileInputStream(file),acceptClasses);) {
-            //白名单
+            //白名单，规避反序列化漏洞
             serializable = IoUtil.readObj(validateObjectInputStream, tClass);
         } catch (IOException e) {
             e.printStackTrace();

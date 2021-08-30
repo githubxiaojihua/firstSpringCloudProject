@@ -38,6 +38,7 @@ public class ReportConstants {
     public static final String ALIKB_CODE = "101";
 
     static{
+        //周报编码：对应统计名称
         SDFZ_CONFIG.put("1022","贷款、代办信用卡类预警统计");
         SDFZ_CONFIG.put("1023","贷款、代办信用卡类预警地市统计");
         SDFZ_CONFIG.put("1025","刷单返利类预警统计");

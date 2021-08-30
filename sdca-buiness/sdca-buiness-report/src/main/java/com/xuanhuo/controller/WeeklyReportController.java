@@ -13,6 +13,7 @@ import com.xuanhuo.service.WeeklyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +22,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-// TODO: 整个类待优化重构
+// TODO: 整个类待优化重构，目前controller中的逻辑太多
 @RestController
 @RequestMapping("/weeklyReport")
 public class WeeklyReportController extends BaseController {
@@ -32,6 +33,29 @@ public class WeeklyReportController extends BaseController {
     @Value("${report.serializable-file}")
     private String serializableFile;
 
+    @GetMapping(value = "/nacostest/{id}")
+    public String getPayment(@PathVariable("id") Integer id)
+    {
+        return "nacos registry, serverPort: "+"\t id"+id;
+    }
+
+
+    /**
+     * 周报统计，逻辑：
+     * 报表中的各个段落中的表格或图表中的数据来源于DFZ\GDATA3\HIVE\YMFXYP等四个数据源，每个数据源中可统计的内容配置在ReportConstants常量类中的
+     * SDFZ_CONFIG、GDATA3_CONFIG、YMFXYP_CONFIG、HIVE_CONFIG等四个map中，然后调研sdfz数据源中的f_tj_sql函数将统计开始、结束日期及以上map中的
+     * 配置信息传递给它，最终会得到对应配置项的统计SQL，然后执行SQL等到配置项的具体数值。
+     *
+     * 1、先根据相关配置ReportConstants及f_tj_sql函数，获取到待在相关数据源中执行的SQL。
+     * 2、分别在SDFZ\GDATA3\HIVE\YMFXYP等数据源中执行相关SQL，并获取结果集
+     * 3、将结果集转化成python需要的json字段及格式，包含上周和本周数据
+     * 4、上周数据序列化成文件存储在resources\seiralizableFile下，取的时候用反序列化取出
+     *
+     * @param date
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     @GetMapping("/data")
     public AjaxResult getWeeklyReportData(String date) throws ExecutionException, InterruptedException {
 

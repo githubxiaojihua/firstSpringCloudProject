@@ -10,6 +10,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 系统线程池配置
+ */
 @Configuration
 @EnableAsync
 public class ThreadPoolConfig {

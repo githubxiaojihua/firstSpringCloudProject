@@ -4,6 +4,7 @@ import com.xuanhuo.common.core.constant.DataSourceConstants;
 
 /**
  * 当前数据源 上下文
+ * 通过当前线程保存设置的数据源
  */
 public class MultiDataSourceContextHolder {
 
