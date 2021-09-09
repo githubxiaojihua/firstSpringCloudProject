@@ -77,19 +77,31 @@ public class WeeklyReportController extends BaseController {
         logger.debug("======报表日期：{}月{}日",staticDate.getMonth(),staticDate.getDay());
         logger.debug("======WARN统计日期为：{}至{}",staticDate.getWarnStartDate(),staticDate.getWarnEndDate());
         logger.debug("======WEBSITE统计日期为：{}至{}",staticDate.getWebsitStartDate(),staticDate.getWebsitEndDate());
+        logger.debug("======week1：{}至{}",staticDate.getWeek1Start(),staticDate.getWeek1End());
+        logger.debug("======week2：{}至{}",staticDate.getWeek2Start(),staticDate.getWeek2End());
+        logger.debug("======week3：{}至{}",staticDate.getWeek3Start(),staticDate.getWeek3End());
+        logger.debug("======week4：{}至{}",staticDate.getWeek4Start(),staticDate.getWeek4End());
         //SDFZ数据源  数据
         Map<String, Object> sdfzResult = getSDFZResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+        sdfzResult.putAll(getSDFZLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        sdfzResult.putAll(select4weekwarn(staticDate));
+        sdfzResult.putAll(select4weekwarnTrend(staticDate));
+
         //GDATA3数据源 数据
         Map<String, Object> gdata3Result = getGDATA3Result(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
         //HIVE数据源 数据
-        Map<String, Object> getHiveResult = getHiveResult(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
+        Map<String, Object> getHiveResult = getHiveResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+        getHiveResult.putAll(getHybbzzl(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        getHiveResult.putAll(getHybkljzl());
+        getHiveResult.putAll(getHybkFourWeek(staticDate.getWeek1Start(), staticDate.getWeek4End()));
+
         //YMFXYP数据源 数据
-        Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
+        Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
 
         //3、拼装python接口对象
-        dellSDFZData(sdfzResult,weeklyReportResult.getTable());
+        dellSDFZData(sdfzResult,weeklyReportResult);
         dellGDATA3Data(gdata3Result,weeklyReportResult.getTable());
-        dellGHData(getHiveResult,weeklyReportResult.getTable());
+        dellGHData(getHiveResult,weeklyReportResult);
         dellYmfxypData(getYMFXYPResult,weeklyReportResult.getTable());
 
         logger.debug("======本周sdfz数据：{}",sdfzResult);
@@ -123,17 +135,24 @@ public class WeeklyReportController extends BaseController {
         logger.debug("======WEBSITE统计日期为：{}至{}",staticDate.getWebsitStartDate(),staticDate.getWebsitEndDate());
         //SDFZ数据源  数据
         Map<String, Object> sdfzResult = getSDFZResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+        sdfzResult.putAll(getSDFZLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        sdfzResult.putAll(select4weekwarn(staticDate));
+        sdfzResult.putAll(select4weekwarnTrend(staticDate));
+
         //GDATA3数据源 数据
         Map<String, Object> gdata3Result = getGDATA3Result(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
         //HIVE数据源 数据
         Map<String, Object> getHiveResult = getHiveResult(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
+        getHiveResult.putAll(getHybbzzl(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        getHiveResult.putAll(getHybkljzl());
+        getHiveResult.putAll(getHybkFourWeek(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
         //YMFXYP数据源 数据
         Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
 
         //3、拼装python接口对象
-        dellSDFZData(sdfzResult,weeklyReportResult.getTable());
+        dellSDFZData(sdfzResult,weeklyReportResult);
         dellGDATA3Data(gdata3Result,weeklyReportResult.getTable());
-        dellGHData(getHiveResult,weeklyReportResult.getTable());
+        dellGHData(getHiveResult,weeklyReportResult);
         dellYmfxypData(getYMFXYPResult,weeklyReportResult.getTable());
 
         logger.debug("======上周sdfz数据：{}",sdfzResult);
@@ -174,6 +193,43 @@ public class WeeklyReportController extends BaseController {
             sdfzResult.put(entry.getKey(),entry.getValue().get());
         }
 
+        return sdfzResult;
+    }
+
+    /**
+     * log日志统计
+     * @param ksrq
+     * @param jsrq
+     * @return
+     */
+    public Map<String,Object> getSDFZLogData(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,Object> sdfzResult = new HashMap<>();
+        Future<List<Map<String, Object>>> sdfzLogData = weeklyReportService.getSDFZLogData(ksrq, jsrq);
+        sdfzResult.put("互联网日志接入量统计",sdfzLogData.get());
+        return sdfzResult;
+    }
+
+    /**
+     * 预警数据近一周的活跃网站数量统计
+     * @param staticDate
+     * @return
+     */
+    public Map<String,Object> select4weekwarn(StaticDate staticDate) throws ExecutionException, InterruptedException {
+        Map<String,Object> sdfzResult = new HashMap<>();
+        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportService.select4weekwarn(staticDate);
+        sdfzResult.put("预警数据近一周的活跃网站数量统计",fourWeekWarn.get());
+        return sdfzResult;
+    }
+
+    /**
+     * 预警数据近一周的活跃网站数量统计
+     * @param staticDate
+     * @return
+     */
+    public Map<String,Object> select4weekwarnTrend(StaticDate staticDate) throws ExecutionException, InterruptedException {
+        Map<String,Object> sdfzResult = new HashMap<>();
+        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportService.select4weekwarnTrend(staticDate);
+        sdfzResult.put("预警数据近四周变化趋势统计",fourWeekWarn.get());
         return sdfzResult;
     }
 
@@ -237,6 +293,39 @@ public class WeeklyReportController extends BaseController {
     }
 
     /**
+     * 黑样本本周总量
+     * @return
+     */
+    public Map<String,Object> getHybbzzl(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,Object> hiveResult = new HashMap<>();
+        Future<Map<String, String>> hybbzzl = weeklyReportService.getHybbzzl(ksrq,jsrq);
+        hiveResult.put("黑样本本周总量",hybbzzl.get());
+        return hiveResult;
+    }
+
+    /**
+     * 黑样本累计总量
+     * @return
+     */
+    public Map<String,Object> getHybkljzl() throws ExecutionException, InterruptedException {
+        Map<String,Object> hiveResult = new HashMap<>();
+        Future<Map<String, String>> hybbzzl = weeklyReportService.getHybkljzl();
+        hiveResult.put("黑样本累计总量",hybbzzl.get());
+        return hiveResult;
+    }
+
+    /**
+     * 黑样本库近四周数据
+     * @return
+     */
+    public Map<String,Object> getHybkFourWeek(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,Object> hiveResult = new HashMap<>();
+        Future<List<Map<String, String>>> hybkFourWeek = weeklyReportService.getHybkFourWeek(ksrq,jsrq);
+        hiveResult.put("黑样本库近四周数据",hybkFourWeek.get());
+        return hiveResult;
+    }
+
+    /**
      * GDATA数据源相关数据
      * @param ksrq
      * @param jsrq
@@ -268,9 +357,10 @@ public class WeeklyReportController extends BaseController {
     /**
      * 处理SDFZ数据源的数据
      * @param sdfzResult
-     * @param table
+     * @param weeklyReportResult
      */
-    private void dellSDFZData(Map<String, Object> sdfzResult,List<Map<String,Object>> table){
+    private void dellSDFZData(Map<String, Object> sdfzResult,WeeklyReportResult weeklyReportResult){
+        List<Map<String, Object>> table = weeklyReportResult.getTable();
         //贷款、代办信用卡类
         Map<String, Object> dk_dbxykl = table.get(0);
         Map<String,Object> data = (LinkedHashMap)((ArrayList) sdfzResult.get("贷款、代办信用卡类预警统计")).get(0);
@@ -336,6 +426,46 @@ public class WeeklyReportController extends BaseController {
             glxyjadstjNewData.add(newEachData);
         });
         glxyjadstj.put("city",glxyjadstjNewData);
+
+        //互联网日志
+        List<Map<String,Object>> hlyrzjrltj = (ArrayList<Map<String,Object>>) sdfzResult.get("互联网日志接入量统计");
+        Map<String, String> lt = weeklyReportResult.getLt();
+        Map<String, String> yd = weeklyReportResult.getYd();
+        Map<String, String> dx = weeklyReportResult.getDx();
+
+        int ltIndex = 1;
+        int ydIndex = 1;
+        int dxIndex = 1;
+        for(Map<String,Object> map : hlyrzjrltj ){
+            if(StrUtil.equals(String.valueOf(map.get("type")),"山东电信")){
+                dx.put("data" + dxIndex++,String.valueOf(map.get("nu")));
+            }
+            if(StrUtil.equals(String.valueOf(map.get("type")),"山东移动")){
+                yd.put("data" + ydIndex++,String.valueOf(map.get("nu")));
+            }
+
+            if(StrUtil.equals(String.valueOf(map.get("type")),"山东联通")){
+                lt.put("data" + ltIndex++,String.valueOf(map.get("nu")));
+            }
+        }
+
+        //预警数据近一周的活跃网站数量统计
+        List<Map<String,Object>> fourWeekWarn = (ArrayList<Map<String,Object>>) sdfzResult.get("预警数据近一周的活跃网站数量统计");
+        List<Map<String, Object>> table_week = weeklyReportResult.getTable_week();
+        Map<String, Object> yjsjjszbhqstj = table_week.get(2);
+        int yjsjjszbhqstj_Index = 1;
+        for(Map<String,Object> map : fourWeekWarn){
+            yjsjjszbhqstj.put("week" + yjsjjszbhqstj_Index++,map.get("nu"));
+        }
+
+        //预警数据近一周的活跃网站数量统计
+        List<Map<String,Object>> fourWeekWarnTrend = (ArrayList<Map<String,Object>>) sdfzResult.get("预警数据近四周变化趋势统计");
+        Map<String, Object> yjsjjszbhqstj01 = table_week.get(0);
+        int yjsjjszbhqstj01_Index = 1;
+        for(Map<String,Object> map : fourWeekWarnTrend){
+            yjsjjszbhqstj01.put("week" + yjsjjszbhqstj01_Index++,map.get("nu"));
+        }
+
     }
 
     /**
@@ -397,15 +527,27 @@ public class WeeklyReportController extends BaseController {
     /**
      * 处理Hive1.1.0数据源的数据
      * @param gdata3Result
-     * @param table
      */
-    private void dellGHData(Map<String, Object> gdata3Result,List<Map<String,Object>> table){
+    private void dellGHData(Map<String, Object> gdata3Result,WeeklyReportResult weeklyReportResult){
+        List<Map<String, Object>> table = weeklyReportResult.getTable();
         //虚假ETC专项
         Map<String, Object> xjETC = table.get(3);
         Map<String,Object> xjETCOldData = (LinkedHashMap)((ArrayList) gdata3Result.get("虚假ETC短信统计")).get(0);
         Map<String,Object> xjETCNewData = new LinkedHashMap<>();
         MapUtil.exchangeReportDate(xjETCOldData,xjETCNewData);
         xjETC.put("message",xjETCNewData);
+
+        Map<String, String> hybzlData = (Map<String, String>)gdata3Result.get("黑样本累计总量");
+        Map<String, String> hybbzzl = (Map<String, String>)gdata3Result.get("黑样本本周总量");
+        List<Map<String, String>> yhbkjszsj = (List<Map<String, String>>)gdata3Result.get("黑样本库近四周数据");
+        List<Map<String, Object>> table_week = weeklyReportResult.getTable_week();
+        Map<String, Object> map = table_week.get(1);
+        map.put("history_sum",hybzlData.get("nu"));
+        map.put("week_sum",hybbzzl.get("nu"));
+        int yhbkjszsj_Index = 1;
+        for(Map<String, String> weekMap : yhbkjszsj){
+            map.put("week" + yhbkjszsj_Index++,weekMap.get("nu"));
+        }
 
     }
 

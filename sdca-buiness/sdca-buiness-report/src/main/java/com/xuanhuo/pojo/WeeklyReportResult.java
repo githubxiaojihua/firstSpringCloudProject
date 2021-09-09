@@ -17,13 +17,20 @@ public class WeeklyReportResult implements Serializable {
     private String day;
     private String start_date;
     private String end_date;
+    private String week;
+    private Map<String,String> lt = new LinkedHashMap<>();
+    private Map<String,String> yd = new LinkedHashMap<>();
+    private Map<String,String> dx = new LinkedHashMap<>();
+
     private List<Map<String,Object>> table = new ArrayList<>();
+    private List<Map<String,Object>> table_week = new ArrayList<>();
 
     public WeeklyReportResult(StaticDate staticDate){
         this.setMonth(staticDate.getMonth());
         this.setDay(staticDate.getDay());
         this.setStart_date(staticDate.getWarnStartDate());
         this.setEnd_date(staticDate.getWarnEndDate());
+        this.setWeek(staticDate.getWeek());
 
         //贷款、代办信用卡类
         Map<String,Object> dk_dbxykl = new LinkedHashMap<>();
@@ -83,5 +90,40 @@ public class WeeklyReportResult implements Serializable {
         table.add(xjETC);
         table.add(gaqtl);
         table.add(glxyjadstj);
+
+        //预警数据近四周变化趋势统计
+        Map<String,Object> yjsjjszbhqstj = new LinkedHashMap<>();
+        yjsjjszbhqstj.put("name","预警数据近四周变化趋势统计");
+        yjsjjszbhqstj.put("header_name","预警总数");
+        yjsjjszbhqstj.put("week1",null);
+        yjsjjszbhqstj.put("week2",null);
+        yjsjjszbhqstj.put("week3",null);
+        yjsjjszbhqstj.put("week4",null);
+
+        //黑样本库统计分析
+        Map<String,Object> hybktjfx = new LinkedHashMap<>();
+        hybktjfx.put("name","黑样本库统计分析");
+        hybktjfx.put("header_name","涉诈网站数");
+        hybktjfx.put("history_sum",null);
+        hybktjfx.put("week_sum",null);
+        hybktjfx.put("week1",null);
+        hybktjfx.put("week2",null);
+        hybktjfx.put("week3",null);
+        hybktjfx.put("week4",null);
+
+        //预警数据中近四周的活跃网站数量统计
+        Map<String,Object> yjsjzjszdhywzsltj = new LinkedHashMap<>();
+        yjsjzjszdhywzsltj.put("name","预警数据中近四周的活跃网站数量统计");
+        yjsjzjszdhywzsltj.put("header_name","活跃涉诈网站");
+        yjsjzjszdhywzsltj.put("week1",null);
+        yjsjzjszdhywzsltj.put("week2",null);
+        yjsjzjszdhywzsltj.put("week3",null);
+        yjsjzjszdhywzsltj.put("week4",null);
+
+        table_week.add(yjsjjszbhqstj);
+        table_week.add(hybktjfx);
+        table_week.add(yjsjzjszdhywzsltj);
+
+
     }
 }

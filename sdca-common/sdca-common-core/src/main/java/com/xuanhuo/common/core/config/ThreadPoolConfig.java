@@ -19,7 +19,7 @@ public class ThreadPoolConfig {
 
     @Bean
     public ThreadPoolExecutor taskExecutor() {
-        return ThreadPoolBuilder.create().setCorePoolSize(5).setMaxPoolSize(10).setWorkQueue(new LinkedBlockingQueue<>(100)).setThreadFactory(new ThreadFactory() {
+        return ThreadPoolBuilder.create().setCorePoolSize(20).setMaxPoolSize(30).setWorkQueue(new LinkedBlockingQueue<>(100)).setThreadFactory(new ThreadFactory() {
             private AtomicInteger count = new AtomicInteger(0);
             @Override
             public Thread newThread(Runnable r) {

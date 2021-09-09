@@ -20,6 +20,11 @@ public class DataSourceConstants {
     public static final String DS_KEY_YMFXYP = "ymfxyp";
 
     /**
+     * 域名研判分析数据源--ww
+     */
+    public static final String DS_KEY_YMFXYP_WW = "ymfxypww";
+
+    /**
      * HIVE数据源
      */
     public static final String DS_KEY_HIVE_1_1_0 = "hive1.1.0";

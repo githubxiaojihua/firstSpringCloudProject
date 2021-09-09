@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanhuo.mapper.CaseAnalyzeMapper">
+
+
+
+	<!-- 案件统计 -->
+	<select id="getCaseCount" resultType="int">
+		select count(distinct ajbh) from (
+			select ajbh from anjian_xsl
+			union
+			select ajbh from anjian_dcla
+			union
+			select ajbh from anjian_txl
+			union
+			select ajbh from anjian_qq_weixin
+		) mid
+	</select>
+
+	<!-- 案件所属月份统计 -->
+	<select id="getCaseMonthCount" resultType="map">
+		select concat(count(1),'') nu,concat(mon,'') mon from (
+		select ajbh,SUBSTR(min(ajsj),6,2) mon from (
+		SELECT
+			distinct ajbh,basj as ajsj
+		FROM
+			anjian_xsl xsl
+		UNION
+		SELECT
+			distinct ajbh,
+			lasj as ajsj
+		FROM
+			anjian_dcla dcla  union
+		select
+		    distinct ajbh,
+		    lasj as ajsj
+		from
+		    anjian_qq_weixin union
+		select
+		    distinct ajbh,
+		    '其它时间' as ajsj
+		from
+		    anjian_txl) mid group by ajbh) mid2 group by mon
+
+	</select>
+
+	<!-- url统计 -->
+	<select id="getCaseUrl" resultType="com.xuanhuo.pojo.URIPojo">
+		select distinct url from (
+			select distinct url from anjian_xsl where url is not null
+			union
+			select distinct url from anjian_dcla where url is not null
+			union
+			select distinct url from anjian_txl where url is not null
+			union
+			select distinct url from anjian_qq_weixin where url is not null
+		) mid
+	</select>
+
+	<!-- URL收录到黑样本库的数量 -->
+	<select id="getCaseYjUrl" resultType="int">
+		select count(mid.url)
+		  from ids_tag_szwz_bqz_di_fraud fraud join (
+				select url from anjian_xsl xsl where xsl.url is not null
+				union
+				select url from anjian_dcla dcla where dcla.url is not null
+				union
+				select url from anjian_txl txl where txl.url is not null
+				union
+				select url from anjian_qq_weixin where url is not null
+			  ) mid   on mid.url like CONCAT('%',fraud.host,'%')
+
+	</select>
+
+	<!-- 手机号统计 -->
+	<select id="getCasePhone" resultType="com.xuanhuo.pojo.PhonePojo">
+		select distinct phone no  from (
+			select phone from anjian_xsl xsl where xsl.phone is not null  and xsl.lx like '%受害人%'
+			union
+			select phone from anjian_dcla dcla where dcla.phone is not null
+			union
+			select phone from anjian_txl txl where txl.phone is not null
+			) mid
+	</select>
+
+	<!-- 手机号预警总数 -->
+	<select id="getCasePhoneWarnCount" resultType="int">
+		select count( phone)  from (
+		select phone from anjian_xsl xsl where xsl.phone is not null  and xsl.lx like '%受害人%'
+		union
+		select phone from anjian_dcla dcla where dcla.phone is not null
+		union
+		select phone from anjian_txl txl where txl.phone is not null
+		) mid where mid.phone  in (
+		select msisdn from ids_tag_prewarn_bqz_di  )
+	</select>
+
+	<select id="getCasePhoneWarn" resultType="map">
+		select concat(count(1),'') nu,concat(mon,'') mon from (
+select distinct phone ,SUBSTR(idsb.dt,1,6) mon  from (
+		select phone from anjian_xsl xsl where xsl.phone is not null  and xsl.lx like '%受害人%'
+		union
+		select phone from anjian_dcla dcla where dcla.phone is not null
+		union
+		select phone from anjian_txl txl where txl.phone is not null
+		) mid  inner join ids_tag_prewarn_bqz_di idsb on mid.phone = idsb.msisdn ) mid2 group by mon
+	</select>
+
+	<!-- 案件简要案情 -->
+	<select id="getCaseAq" resultType="com.xuanhuo.pojo.CaseAqPojo">
+
+		select ajbh,min(ajsj) mon,jyaq from (
+		SELECT
+			distinct ajbh,basj as ajsj,jyaq
+		FROM
+			anjian_xsl xsl
+		WHERE
+			xsl.lx LIKE '%受害人%' UNION
+		SELECT
+			distinct ajbh,
+			lasj as ajsj,jyaq
+		FROM
+			anjian_dcla dcla  union
+		select
+		    distinct ajbh,
+		    lasj as ajsj,jyaq
+		from
+		    anjian_qq_weixin ) mid group by ajbh
+
+	</select>
+
+	<!-- 案件APP统计 -->
+	<select id="getCaseApp" resultType="map">
+
+	    select apps,concat(count(*),'') nu from (
+		select am.apps from
+		anjian_app_money am where am.apps !='[]'
+		union all
+		select qw.apps from anjian_qq_weixin qw  where qw.apps!='[]' ) mid
+		group by apps
+		order by nu desc
+
+	</select>
+
+	<!-- 案件类型统计 -->
+	<select id="getCaseType" resultType="map">
+	    select dl,count(*) nu  from (
+		select dl dl from anjian_dcla dcla
+		union all
+		select ajdl dl from anjian_qq_weixin) mid
+		group by dl
+		order by nu desc
+
+	</select>
+
+	<!-- 案件类型统计 -->
+	<select id="getCaseType1111" resultType="map">
+	    select dl,count(*) nu  from (
+		select dl dl from anjian_dcla dcla
+		union all
+		select ajdl dl from anjian_qq_weixin) mid
+		group by dl
+		order by nu desc
+
+	</select>
+
+	<!-- 案件类型统计 -->
+	<select id="getTypeWarnCount" resultType="map">
+	    select concat(count(mid.url),'') nu,dl
+		  from ids_tag_szwz_bqz_di_fraud fraud join (
+				select url,dcla.dl from anjian_dcla dcla where dcla.url is not null
+				union
+				select url,txl.name	from anjian_txl txl where txl.url is not null
+				union
+				select url,ajdl from anjian_qq_weixin where url is not null
+			  ) mid   on mid.url like CONCAT('%',fraud.host,'%') group by dl
+
+	</select>
+
+
+
+
+</mapper>
