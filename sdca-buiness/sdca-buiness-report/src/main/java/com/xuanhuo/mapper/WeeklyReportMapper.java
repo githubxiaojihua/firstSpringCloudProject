@@ -54,4 +54,11 @@ public interface WeeklyReportMapper {
 	 * @return
 	 */
 	List<Map<String,String>> getHybkFourWeek(Map param);
+
+	/**
+	 * 查询日志质量
+	 * @param rq
+	 * @return
+	 */
+	List<Map<String,String>> getLogQuality(@Param("rq") String rq);
 }

@@ -31,6 +31,9 @@ public class StaticDate {
     private String week4Start;
     private String week4End;
 
+    //日志质量统计日期为最近一天
+    private String logQuaDate;
+
     /**
      * 根据统计日期 计算具体统计日期
      * @param staticDate
@@ -38,6 +41,7 @@ public class StaticDate {
     public StaticDate(String staticDate){
         //默认为当前日期
         Date staticData = DateUtil.date();
+        logQuaDate = DateUtil.format(DateUtil.offsetDay(staticData,-1),"yyyy-MM-dd");
         if(StrUtil.isNotEmpty(staticDate)){
             staticData = DateUtil.parse(staticDate,"yyyyMMdd");
         }

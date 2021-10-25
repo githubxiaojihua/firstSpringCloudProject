@@ -25,6 +25,8 @@ public class WeeklyReportResult implements Serializable {
     private List<Map<String,Object>> table = new ArrayList<>();
     private List<Map<String,Object>> table_week = new ArrayList<>();
 
+    private Map<String,Object> quality = new LinkedHashMap<>();
+
     public WeeklyReportResult(StaticDate staticDate){
         this.setMonth(staticDate.getMonth());
         this.setDay(staticDate.getDay());
@@ -123,6 +125,36 @@ public class WeeklyReportResult implements Serializable {
         table_week.add(yjsjjszbhqstj);
         table_week.add(hybktjfx);
         table_week.add(yjsjzjszdhywzsltj);
+
+        //日志数据初始化，防止源数据丢失导致出现传递给data1-----data7之间任何数据缺失
+        lt.put("data1","0");
+        lt.put("data2","0");
+        lt.put("data3","0");
+        lt.put("data4","0");
+        lt.put("data5","0");
+        lt.put("data6","0");
+        lt.put("data7","0");
+
+        yd.put("data1","0");
+        yd.put("data2","0");
+        yd.put("data3","0");
+        yd.put("data4","0");
+        yd.put("data5","0");
+        yd.put("data6","0");
+        yd.put("data7","0");
+
+        dx.put("data1","0");
+        dx.put("data2","0");
+        dx.put("data3","0");
+        dx.put("data4","0");
+        dx.put("data5","0");
+        dx.put("data6","0");
+        dx.put("data7","0");
+
+        quality.put("date",staticDate.getLogQuaDate());
+        quality.put("total",null);
+        quality.put("host_not_null",null);
+        quality.put("ssl_sni_not_null",null);
 
 
     }

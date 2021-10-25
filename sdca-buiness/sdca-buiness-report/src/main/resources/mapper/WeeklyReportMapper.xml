@@ -61,4 +61,9 @@
 		group by weekofyear(FROM_UNIXTIME(UNIX_TIMESTAMP(dt,'yyyymmdd'),'yyyy-mm-dd'))
 	</select>
 
+	<!-- 日志质量 -->
+	<select id="getLogQuality" parameterType="String" resultType="map">
+		select num,num_type,tablename from al_eventp_hive.gk_data_count where dt=#{rq}
+	</select>
+
 </mapper>

@@ -1,6 +1,8 @@
 package com.xuanhuo.controller;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.math.MathUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.xuanhuo.common.core.constant.ReportConstants;
 import com.xuanhuo.common.core.controller.BaseController;
@@ -69,7 +71,7 @@ public class WeeklyReportController extends BaseController {
         if(lastWeeklyReport != null){
             dellLastWeekData(weeklyReportResult,lastWeeklyReport);
         }else{
-            WeeklyReportResult lastWeeklyReportData = getLastWeeklyReportData();
+            WeeklyReportResult lastWeeklyReportData = getLastWeeklyReportData(date);
             dellLastWeekData(weeklyReportResult,lastWeeklyReportData);
         }
         //2、统计数据
@@ -94,6 +96,7 @@ public class WeeklyReportController extends BaseController {
         getHiveResult.putAll(getHybbzzl(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
         getHiveResult.putAll(getHybkljzl());
         getHiveResult.putAll(getHybkFourWeek(staticDate.getWeek1Start(), staticDate.getWeek4End()));
+        getHiveResult.putAll(getLogQuality(staticDate.getLogQuaDate()));
 
         //YMFXYP数据源 数据
         Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
@@ -120,10 +123,13 @@ public class WeeklyReportController extends BaseController {
      * 统计上周数据
      * @return
      */
-    private WeeklyReportResult getLastWeeklyReportData() throws ExecutionException, InterruptedException {
+    private WeeklyReportResult getLastWeeklyReportData(String date) throws ExecutionException, InterruptedException {
         //1、初始化相关类
         //统计时间
-        String date = DateUtil.format((DateUtil.offsetDay(new Date(),-7)),"yyyyMMdd");
+        if(StrUtil.isEmpty(date)){
+            date = DateUtil.format(DateUtil.date(),"yyyyMMdd");
+        }
+        date = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(date,"yyyyMMdd"),-7)),"yyyyMMdd");
         StaticDate staticDate = new StaticDate(date);
         //初始化与python接口数据对象
         WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
@@ -207,6 +213,19 @@ public class WeeklyReportController extends BaseController {
         Future<List<Map<String, Object>>> sdfzLogData = weeklyReportService.getSDFZLogData(ksrq, jsrq);
         sdfzResult.put("互联网日志接入量统计",sdfzLogData.get());
         return sdfzResult;
+    }
+
+    /**
+     * log日志统计
+     * @return
+     */
+    public Map<String,Object> getLogQuality(String rq) throws ExecutionException, InterruptedException {
+
+        Map<String,Object> logQuaRes = new HashMap<>();
+        Future<List<Map<String, String>>> hiveLogData = weeklyReportService.getLogQuality(rq);
+        logQuaRes.put("互联网日志质量统计",hiveLogData.get());
+        logger.debug("互联网日志质量统计{}",hiveLogData.get());
+        return logQuaRes;
     }
 
     /**
@@ -548,6 +567,97 @@ public class WeeklyReportController extends BaseController {
         for(Map<String, String> weekMap : yhbkjszsj){
             map.put("week" + yhbkjszsj_Index++,weekMap.get("nu"));
         }
+
+        List<Map<String, String>> logQuality =  (List<Map<String, String>>)gdata3Result.get("互联网日志质量统计");
+        if(logQuality != null){
+            Map<String, Object> quality = weeklyReportResult.getQuality();
+            //总量统计
+            Map<String,String> totalMap = new LinkedHashMap<>();
+            totalMap.put("data1","0");
+            totalMap.put("data2","0");
+            totalMap.put("data3","0");
+            //host不为空统计
+            Map<String,String> hostNotNullMap = new LinkedHashMap<>();
+            hostNotNullMap.put("data1","0");
+            hostNotNullMap.put("data2","0");
+            hostNotNullMap.put("data3","0");
+            hostNotNullMap.put("data4","0");
+            //ssl_sni不为空统计
+            Map<String,String> sslNotNullMap = new LinkedHashMap<>();
+            sslNotNullMap.put("data1","0");
+            sslNotNullMap.put("data2","0");
+            sslNotNullMap.put("data3","0");
+            sslNotNullMap.put("data4","0");
+
+            double totalData1 = 0.0;
+            double hostData1 = 0.0;
+            double sslData1 = 0.0;
+            double totalData2 = 0.0;
+            double sslData3 = 0.0;
+
+
+            for(Map<String,String> logData : logQuality){
+                if(StrUtil.equals(logData.get("num_type"),"全量数据")){
+
+
+                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
+                        totalData1 = Double.parseDouble(logData.get("num"))/100000000;
+                        String data1Str = NumberUtil.roundStr(totalData1,2);
+                        totalMap.put("data1", data1Str);
+                    }else{
+                        totalData2 = Double.parseDouble(logData.get("num"))/100000000;
+                        String data2Str = NumberUtil.roundStr(totalData2,2);
+                        totalMap.put("data2", data2Str);
+                    }
+                    if(totalData1 != 0){
+                        totalMap.put("data3",NumberUtil.roundStr(totalData2/totalData1,2));
+                    }
+                    quality.put("total",totalMap);
+                }
+
+                if(StrUtil.equals(logData.get("num_type"),"host不为空")){
+
+                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
+                        hostData1 = Double.parseDouble(logData.get("num"))/100000000;
+                        String data1 = NumberUtil.roundStr(hostData1,2);
+                        hostNotNullMap.put("data1", data1);
+                    }
+                    quality.put("host_not_null",hostNotNullMap);
+                }
+
+                if(StrUtil.equals(logData.get("num_type"),"ssl_sni不为空")){
+
+
+                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
+                        sslData1 = Double.parseDouble(logData.get("num"))/100000000;
+                        String data1 = NumberUtil.roundStr(sslData1,2);
+                        sslNotNullMap.put("data1", data1);
+                    }else{
+                        sslData3 =Double.parseDouble(logData.get("num"))/100000000;
+                        String data3 = NumberUtil.roundStr(sslData3,2);
+                        sslNotNullMap.put("data3", data3);
+                    }
+                    quality.put("ssl_sni_not_null",sslNotNullMap);
+                }
+
+            }
+
+            double hostData3 = NumberUtil.round(totalData2 - sslData3,2).doubleValue();
+
+            String hostData2 = NumberUtil.roundStr(hostData1/totalData1,2);
+            String hostData4 = NumberUtil.roundStr(hostData3/totalData2,2);
+            String sslData2 = NumberUtil.roundStr(sslData1/totalData1,2);
+            String sslData4 = NumberUtil.roundStr(sslData3/totalData2,2);
+
+            hostNotNullMap.put("data2",hostData2);
+            hostNotNullMap.put("data3",String.valueOf(hostData3));
+            hostNotNullMap.put("data4",hostData4);
+
+            sslNotNullMap.put("data2",sslData2);
+            sslNotNullMap.put("data4",sslData4);
+        }
+
+
 
     }
 

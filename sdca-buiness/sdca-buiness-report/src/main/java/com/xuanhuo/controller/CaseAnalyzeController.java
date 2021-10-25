@@ -27,6 +27,10 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * 案件分析
+ * 注意：案件分析需要分析IP及ICP需要在外网环境中运行，需要先将多数据源模块的配置文件设置成multiDataSource-dev.properties
+ */
 @RestController
 @RequestMapping("/caseAnalyze")
 public class CaseAnalyzeController extends BaseController {
@@ -37,18 +41,18 @@ public class CaseAnalyzeController extends BaseController {
     CaseAnalyzeMapper caseAnalyzeMapper;
 
 
-    @GetMapping(value = "/result")
-    public Map<String, Object> getPayment() throws ExecutionException, InterruptedException {
-        Future<Map<String, Object>>  urlResultMap = caseAnalyzeService.caeUrlAnalyze();
-        Future<Map<String,Map<String,Integer>>> peopleResultMap = caseAnalyzeService.casePeopleAnalyze();
-        Future<Map<String, Object>> phoneFuture = caseAnalyzeService.caePhoneAnalyze();
-        Future<Map<String, Object>> appFuture = caseAnalyzeService.caseAppAnalyze();
-        List<Map<String, String>> caseTypemaps = caseAnalyzeService.caseTypeAnalyze();
-        Future<List<Map<String, String>>> typeWarnCount = caseAnalyzeService.getTypeWarnCount();
+    @GetMapping(value = "/result/{caseDate}")
+    public Map<String, Object> getPayment(@PathVariable("caseDate") String caseDate) throws ExecutionException, InterruptedException {
+        Future<Map<String, Object>>  urlResultMap = caseAnalyzeService.caeUrlAnalyze(caseDate);
+        Future<Map<String,Map<String,Integer>>> peopleResultMap = caseAnalyzeService.casePeopleAnalyze(caseDate);
+        Future<Map<String, Object>> phoneFuture = caseAnalyzeService.caePhoneAnalyze(caseDate);
+        Future<Map<String, Object>> appFuture = caseAnalyzeService.caseAppAnalyze(caseDate);
+        List<Map<String, String>> caseTypemaps = caseAnalyzeService.caseTypeAnalyze(caseDate);
+        Future<List<Map<String, String>>> typeWarnCount = caseAnalyzeService.getTypeWarnCount(caseDate);
 
 
         //分批解析IPICP
-        List<URIPojo> caseUrI = caseAnalyzeService.getCaseList().get();
+        List<URIPojo> caseUrI = caseAnalyzeService.getCaseList(caseDate).get();
         Map<String,Future<Map<String, Integer>>> ipICPResultMap = new HashMap<>();
         List<URIPojo> threadMession = new ArrayList<>();
         for(int i=0; i<caseUrI.size();i++){

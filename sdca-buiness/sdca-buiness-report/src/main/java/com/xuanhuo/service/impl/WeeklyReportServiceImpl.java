@@ -82,6 +82,14 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         return new AsyncResult<>(result);
     }
 
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
+    @Async("taskExecutor")
+    @Override
+    public Future<List<Map<String, String>>> getLogQuality(String rq) {
+        List<Map<String, String>> logQuality = weeklyReportMapper.getLogQuality(rq);
+        return new AsyncResult<>(logQuality);
+    }
+
     /**
      *  在GDATA3数据库执行相关SQL
      * @param sql

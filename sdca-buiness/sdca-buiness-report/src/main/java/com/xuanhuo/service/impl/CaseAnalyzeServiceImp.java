@@ -42,10 +42,10 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Async("taskExecutor")
     @Override
-    public Future<Map<String, Object>> caeUrlAnalyze() {
+    public Future<Map<String, Object>> caeUrlAnalyze(String caseDate) {
         Map<String,Object> resultMap = new LinkedHashMap<>();
         //0、案件总数
-        int caseCount = caseAnalyzeMapper.getCaseCount();
+        int caseCount = caseAnalyzeMapper.getCaseCount(caseDate);
         resultMap.put("案件总数",String.valueOf(caseCount));
 
         //1、案件月份统计
@@ -57,7 +57,7 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
         resultMap.put("案件月份统计",caseMonth.toString());
 
         //2、分析ICP\ip\location
-        List<URIPojo> caseUrI = caseAnalyzeMapper.getCaseUrl();
+        List<URIPojo> caseUrI = caseAnalyzeMapper.getCaseUrl(caseDate);
         int notIcpCount= 0;
         for(URIPojo uri : caseUrI){
             URIPojo icpUri = URIUtil.getIcp(uri);
@@ -70,12 +70,12 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
         resultMap.put("无备案数",String.valueOf(notIcpCount));
 
         //2、分析黑样本库收录
-        int caseYjUrl = caseAnalyzeMapper.getCaseYjUrl();
+        int caseYjUrl = caseAnalyzeMapper.getCaseYjUrl(caseDate);
         resultMap.put("涉诈URL数",String.valueOf(caseYjUrl));
         BigDecimal rate = NumberUtil.round((double)caseYjUrl/caseUrI.size(),4);
         resultMap.put("涉诈URL比例",String.valueOf(rate.doubleValue()));
 
-        List<Map<String, String>> typeWarnCount = caseAnalyzeMapper.getTypeWarnCount();
+        List<Map<String, String>> typeWarnCount = caseAnalyzeMapper.getTypeWarnCount(caseDate);
         int typeCount = 0;
         for(Map<String, String> map:typeWarnCount){
             typeCount += Integer.valueOf(map.get("nu"));
@@ -123,10 +123,10 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Async("taskExecutor")
     @Override
-    public Future<Map<String, Object>> caePhoneAnalyze() {
+    public Future<Map<String, Object>> caePhoneAnalyze(String caseDate) {
         Map<String,Object> resultMap = new LinkedHashMap<>();
         //1、手机总数
-        List<PhonePojo> casePhone = caseAnalyzeMapper.getCasePhone();
+        List<PhonePojo> casePhone = caseAnalyzeMapper.getCasePhone(caseDate);
         List<PhonePojo> newCollect = casePhone.stream().filter(new Predicate<PhonePojo>() {
             @Override
             public boolean test(PhonePojo phonePojo) {
@@ -135,7 +135,7 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
         }).collect(Collectors.toList());
         resultMap.put("案件手机号总数",newCollect.size());
         List<Map<String, String>> casePhoneWarn = caseAnalyzeMapper.getCasePhoneWarn();
-        int casePhoneWarnCount = caseAnalyzeMapper.getCasePhoneWarnCount();
+        int casePhoneWarnCount = caseAnalyzeMapper.getCasePhoneWarnCount(caseDate);
         casePhoneWarn.sort(new Comparator<Map<String, String>>() {
             @Override
             public int compare(Map<String, String> o1, Map<String, String> o2) {
@@ -149,7 +149,12 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
             casePhoneWarnSb.append(map.get("mon")).append("月：").append(map.get("nu")).append(";");
         });
         resultMap.put("案件手机号预警按月统计",casePhoneWarnSb.toString());
-        resultMap.put("手机号预警比例",String.valueOf(NumberUtil.round((double)casePhoneWarnCount/newCollect.size(),4)));
+        if(newCollect == null || newCollect.size() == 0){
+            resultMap.put("手机号预警比例","0");
+        }else{
+            resultMap.put("手机号预警比例",String.valueOf(NumberUtil.round((double)casePhoneWarnCount/newCollect.size(),4)));
+
+        }
 
         return new AsyncResult<>(resultMap);
     }
@@ -157,9 +162,9 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Async("taskExecutor")
     @Override
-    public Future<Map<String, Object>> caseAppAnalyze() {
+    public Future<Map<String, Object>> caseAppAnalyze(String caseDate) {
         Map<String,Object> resultMap = new LinkedHashMap<>();
-        List<Map<String, String>> caseApp = caseAnalyzeMapper.getCaseApp();
+        List<Map<String, String>> caseApp = caseAnalyzeMapper.getCaseApp(caseDate);
         caseApp.sort(new Comparator<Map<String, String>>() {
             @Override
             public int compare(Map<String, String> o1, Map<String, String> o2) {
@@ -179,15 +184,15 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Async("taskExecutor")
     @Override
-    public Future< List<Map<String, String>>> getTypeWarnCount() {
-        List<Map<String, String>> typeWarnCount = caseAnalyzeMapper.getTypeWarnCount();
+    public Future< List<Map<String, String>>> getTypeWarnCount(String caseDate) {
+        List<Map<String, String>> typeWarnCount = caseAnalyzeMapper.getTypeWarnCount(caseDate);
         return new AsyncResult<>(typeWarnCount);
     }
 
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Override
-    public Future<List<URIPojo>> getCaseList() {
-        List<URIPojo> caseUrI = caseAnalyzeMapper.getCaseUrl();
+    public Future<List<URIPojo>> getCaseList(String caseDate) {
+        List<URIPojo> caseUrI = caseAnalyzeMapper.getCaseUrl(caseDate);
         return new AsyncResult<>(caseUrI);
     }
 
@@ -198,8 +203,8 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
 
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Override
-    public List<Map<String, String>> caseTypeAnalyze() {
-        List<Map<String, String>> caseType = caseAnalyzeMapper.getCaseType();
+    public List<Map<String, String>> caseTypeAnalyze(String caseDate) {
+        List<Map<String, String>> caseType = caseAnalyzeMapper.getCaseType(caseDate);
         return caseType;
     }
 
@@ -216,8 +221,8 @@ public class CaseAnalyzeServiceImp implements CaseAnalyzeService {
     @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
     @Async("taskExecutor")
     @Override
-    public Future<Map<String,Map<String,Integer>>> casePeopleAnalyze() {
-        List<CaseAqPojo> caseAq = caseAnalyzeMapper.getCaseAq();
+    public Future<Map<String,Map<String,Integer>>> casePeopleAnalyze(String caseDate) {
+        List<CaseAqPojo> caseAq = caseAnalyzeMapper.getCaseAq(caseDate);
         Map<String,Integer> genderCount = new HashMap<>();
         Map<String,Integer> ageCount = new HashMap<>();
         caseAq.stream().forEach(aq ->{

@@ -2,6 +2,7 @@ package com.xuanhuo.service;
 
 
 import com.xuanhuo.pojo.StaticDate;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -29,5 +30,8 @@ public interface WeeklyReportService {
     Future<List<Map<String, String>>> getHybkFourWeek(String ksrq,String jsrq);
 
     Future<List<Map<String, String>>> select4weekwarnTrend(StaticDate staticDate);
+
+    Future<List<Map<String, String>>> getLogQuality(String rq);
+
 
 }
