@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
  * 注意：案件分析需要分析IP及ICP需要在外网环境中运行，需要先将多数据源模块的配置文件设置成multiDataSource-dev.properties
  */
 @RestController
-@RequestMapping("/caseAnalyze")
+@RequestMapping("/  ")
 public class CaseAnalyzeController extends BaseController {
 
     @Autowired
