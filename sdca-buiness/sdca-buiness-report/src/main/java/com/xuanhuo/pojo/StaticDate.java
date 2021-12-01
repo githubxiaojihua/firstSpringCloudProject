@@ -5,7 +5,9 @@ import cn.hutool.core.io.unit.DataSizeUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 统计时间
@@ -33,6 +35,9 @@ public class StaticDate {
 
     //日志质量统计日期为最近一天
     private String logQuaDate;
+
+    //日志中所有表格的日期列表
+    private List<String> dateList = new ArrayList<>();
 
     /**
      * 根据统计日期 计算具体统计日期
@@ -62,6 +67,14 @@ public class StaticDate {
         this.setWeek3End(DateUtil.format(DateUtil.offsetDay(DateUtil.parse(week3Start,"yyyyMMdd"),6),"yyyyMMdd"));
         this.setWeek4Start(DateUtil.format(DateUtil.offsetWeek(staticData,-1),"yyyyMMdd"));
         this.setWeek4End(DateUtil.format(DateUtil.offsetDay(DateUtil.parse(week4Start,"yyyyMMdd"),6),"yyyyMMdd"));
+
+        Date warnStartDate = DateUtil.parse(this.warnStartDate);
+        Date warnEndDate = DateUtil.parse(this.warnEndDate);
+        while(DateUtil.compare(warnStartDate,warnEndDate)!=1){
+            this.dateList.add(DateUtil.format(warnStartDate,"yyyyMMdd"));
+            warnStartDate = DateUtil.offsetDay(warnStartDate,1);
+        }
+
     }
 
 }

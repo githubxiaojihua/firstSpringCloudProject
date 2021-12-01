@@ -41,6 +41,8 @@ public class WeeklyReportController extends BaseController {
         return "nacos registry, serverPort: "+"\t id"+id;
     }
 
+    private  StaticDate staticDate;
+
 
     /**
      * 周报统计，逻辑：
@@ -63,11 +65,11 @@ public class WeeklyReportController extends BaseController {
 
         //1、初始化相关类
         //统计时间
-        StaticDate staticDate = new StaticDate(date);
+        staticDate = new StaticDate(date);
         //初始化与python接口数据对象
         WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
         //上周数据
-        WeeklyReportResult lastWeeklyReport = getLastWeekReport();
+        WeeklyReportResult lastWeeklyReport = getLastWeekReport(date);
         if(lastWeeklyReport != null){
             dellLastWeekData(weeklyReportResult,lastWeeklyReport);
         }else{
@@ -83,6 +85,7 @@ public class WeeklyReportController extends BaseController {
         logger.debug("======week2：{}至{}",staticDate.getWeek2Start(),staticDate.getWeek2End());
         logger.debug("======week3：{}至{}",staticDate.getWeek3Start(),staticDate.getWeek3End());
         logger.debug("======week4：{}至{}",staticDate.getWeek4Start(),staticDate.getWeek4End());
+        logger.debug("======dateList:{}",staticDate.getDateList().toString());
         //SDFZ数据源  数据
         Map<String, Object> sdfzResult = getSDFZResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
         sdfzResult.putAll(getSDFZLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
@@ -452,21 +455,26 @@ public class WeeklyReportController extends BaseController {
         Map<String, String> yd = weeklyReportResult.getYd();
         Map<String, String> dx = weeklyReportResult.getDx();
 
-        int ltIndex = 1;
-        int ydIndex = 1;
-        int dxIndex = 1;
-        for(Map<String,Object> map : hlyrzjrltj ){
-            if(StrUtil.equals(String.valueOf(map.get("type")),"山东电信")){
-                dx.put("data" + dxIndex++,String.valueOf(map.get("nu")));
-            }
-            if(StrUtil.equals(String.valueOf(map.get("type")),"山东移动")){
-                yd.put("data" + ydIndex++,String.valueOf(map.get("nu")));
-            }
+        int dateIndex = 1;
+        //处理实际数据天数少导致数据前移的问题
+        //1、根据统计开始日期初始化日期list
+        //2、根据日期list取对应数据填充，无则0
+        for(String date : staticDate.getDateList()){
+            for(Map<String,Object> map : hlyrzjrltj ){
+                if(StrUtil.equals(String.valueOf(map.get("type")),"山东电信") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+                    dx.put("data" + dateIndex,String.valueOf(map.get("nu")));
+                }
+                if(StrUtil.equals(String.valueOf(map.get("type")),"山东移动") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+                    yd.put("data" + dateIndex,String.valueOf(map.get("nu")));
+                }
 
-            if(StrUtil.equals(String.valueOf(map.get("type")),"山东联通")){
-                lt.put("data" + ltIndex++,String.valueOf(map.get("nu")));
+                if(StrUtil.equals(String.valueOf(map.get("type")),"山东联通") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+                    lt.put("data" + dateIndex,String.valueOf(map.get("nu")));
+                }
             }
+            dateIndex++;
         }
+
 
         //预警数据近一周的活跃网站数量统计
         List<Map<String,Object>> fourWeekWarn = (ArrayList<Map<String,Object>>) sdfzResult.get("预警数据近一周的活跃网站数量统计");
@@ -680,9 +688,15 @@ public class WeeklyReportController extends BaseController {
      * 反序列化上周数据
      * @return
      */
-    private WeeklyReportResult getLastWeekReport(){
+    private WeeklyReportResult getLastWeekReport(String date){
+        //1、初始化相关类
+        //统计时间
+        if(StrUtil.isEmpty(date)){
+            date = DateUtil.format(DateUtil.date(),"yyyyMMdd");
+        }
+        date = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(date,"yyyyMMdd"),-7)),"yyyyMMdd");
         SerializableUtil<WeeklyReportResult> serializableUtil = new SerializableUtil<>();
-        WeeklyReportResult weeklyReportResult = serializableUtil.deSerializableObjectFromFile(serializableFile+"."+DateUtil.format((DateUtil.offsetDay(new Date(),-7)),"yyyyMMdd"), new Class[]{WeeklyReportResult.class,List.class,byte[].class}, WeeklyReportResult.class);
+        WeeklyReportResult weeklyReportResult = serializableUtil.deSerializableObjectFromFile(serializableFile+"."+date, new Class[]{WeeklyReportResult.class,List.class,byte[].class}, WeeklyReportResult.class);
         return weeklyReportResult;
     }
 

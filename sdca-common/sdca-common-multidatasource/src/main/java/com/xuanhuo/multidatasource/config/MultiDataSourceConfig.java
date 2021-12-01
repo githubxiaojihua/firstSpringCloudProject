@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@PropertySource("classpath:multiDataSource-dev.properties")
+@PropertySource("classpath:multiDataSource.properties")
 public class MultiDataSourceConfig {
 
     @Bean(DataSourceConstants.DS_KEY_SDFZ)
