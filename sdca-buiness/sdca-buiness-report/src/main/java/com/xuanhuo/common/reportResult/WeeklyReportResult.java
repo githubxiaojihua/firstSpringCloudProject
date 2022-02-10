@@ -1,5 +1,6 @@
-package com.xuanhuo.pojo;
+package com.xuanhuo.common.reportResult;
 
+import com.xuanhuo.pojo.StaticDate;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ public class WeeklyReportResult implements Serializable {
     private String start_date;
     private String end_date;
     private String week;
+
     private Map<String,String> lt = new LinkedHashMap<>();
     private Map<String,String> yd = new LinkedHashMap<>();
     private Map<String,String> dx = new LinkedHashMap<>();
@@ -26,6 +28,8 @@ public class WeeklyReportResult implements Serializable {
     private List<Map<String,Object>> table_week = new ArrayList<>();
 
     private Map<String,Object> quality = new LinkedHashMap<>();
+
+    public WeeklyReportResult(){}
 
     public WeeklyReportResult(StaticDate staticDate){
         this.setMonth(staticDate.getMonth());

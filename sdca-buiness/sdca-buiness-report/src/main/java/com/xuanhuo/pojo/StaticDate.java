@@ -14,6 +14,7 @@ import java.util.List;
  */
 @Data
 public class StaticDate {
+    private String staticDate;
     private String warnStartDate;
     private String warnEndDate;
     private String websitStartDate;
@@ -33,7 +34,7 @@ public class StaticDate {
     private String week4Start;
     private String week4End;
 
-    //日志质量统计日期为最近一天
+    //日志质量统计日期为统计周期的第三天
     private String logQuaDate;
 
     //日志中所有表格的日期列表
@@ -44,6 +45,7 @@ public class StaticDate {
      * @param staticDate
      */
     public StaticDate(String staticDate){
+        this.staticDate = staticDate;
         //默认为当前日期
         Date staticData = DateUtil.date();
         logQuaDate = DateUtil.format(DateUtil.offsetDay(staticData,-1),"yyyy-MM-dd");

@@ -1,22 +1,10 @@
 package com.xuanhuo.controller;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import com.xuanhuo.common.core.constant.ReportConstants;
 import com.xuanhuo.common.core.controller.BaseController;
-import com.xuanhuo.common.core.domain.AjaxResult;
-import com.xuanhuo.common.core.utils.MapUtil;
-import com.xuanhuo.common.core.utils.SerializableUtil;
-import com.xuanhuo.constant.CaseAnalyzeConstant;
 import com.xuanhuo.mapper.CaseAnalyzeMapper;
-import com.xuanhuo.pojo.StaticDate;
 import com.xuanhuo.pojo.URIPojo;
-import com.xuanhuo.pojo.WeeklyReportResult;
 import com.xuanhuo.service.CaseAnalyzeService;
-import com.xuanhuo.service.WeeklyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +20,7 @@ import java.util.concurrent.Future;
  * 注意：案件分析需要分析IP及ICP需要在外网环境中运行，需要先将多数据源模块的配置文件设置成multiDataSource-dev.properties
  */
 @RestController
-@RequestMapping("/  ")
+@RequestMapping("/caseAnalyze")
 public class CaseAnalyzeController extends BaseController {
 
     @Autowired
