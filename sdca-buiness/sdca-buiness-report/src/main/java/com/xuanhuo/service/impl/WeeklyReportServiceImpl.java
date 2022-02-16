@@ -163,6 +163,36 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     }
 
     /**
+     * app及网站统计
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_GDATA3)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getAppNet(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> appNet = weeklyReportMapper.getAppNet(param);
+        return new AsyncResult<>(appNet);
+    }
+
+    /**
+     * qq及微信
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getQQWX(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> qqWx = weeklyReportMapper.getQQWX(param);
+        return new AsyncResult<>(qqWx);
+    }
+
+    /**
      * 原生SQL执行
      * @param sql
      * @return

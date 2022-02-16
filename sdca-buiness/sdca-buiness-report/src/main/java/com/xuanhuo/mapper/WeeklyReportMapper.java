@@ -61,4 +61,16 @@ public interface WeeklyReportMapper {
 	 * @return
 	 */
 	List<Map<String,String>> getLogQuality(@Param("rq") String rq);
+
+	/**
+	 * 查询APP及网站
+	 * @return
+	 */
+	List<Map<String,String>> getAppNet(Map param);
+
+	/**
+	 * 查询QQ及微信
+	 * @return
+	 */
+	List<Map<String,String>> getQQWX(Map param);
 }

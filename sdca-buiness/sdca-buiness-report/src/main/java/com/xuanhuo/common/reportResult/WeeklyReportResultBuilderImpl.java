@@ -1,5 +1,6 @@
 package com.xuanhuo.common.reportResult;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -53,6 +54,29 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         result.setEnd_date(staticDate.getWarnEndDate());
         result.setWeek(staticDate.getWeek());
 
+        //初始化qq_wx
+        Map<String,String> qq = new LinkedHashMap<>();
+        qq.put("data1","0");
+        qq.put("data2","0");
+        qq.put("data3","0");
+        qq.put("data4","0");
+        qq.put("data5","0");
+        qq.put("data6","0");
+        qq.put("data7","0");
+
+        Map<String,String> wx = new LinkedHashMap<>();
+        wx.put("data1","0");
+        wx.put("data2","0");
+        wx.put("data3","0");
+        wx.put("data4","0");
+        wx.put("data5","0");
+        wx.put("data6","0");
+        wx.put("data7","0");
+
+        Map<String,Map<String,String>> qq_wx = new LinkedHashMap<>();
+        qq_wx.put("qq",qq);
+        qq_wx.put("wx",wx);
+        result.setQq_wx(qq_wx);
         //初始化贷款、代办信用卡类相关
         Map<String,Object> dk_dbxykl = new LinkedHashMap<>();
         dk_dbxykl.put("name","贷款、代办信用卡类");
@@ -194,6 +218,9 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         logger.debug("======开始设置GDATA3相关数据============");
         //获取GDATA3数据源 数据
         Map<String, Object> gdata3Result = getGDATA3Result(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
+        Map<String, List<Map<String, String>>> appNet = getAppNet(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+
+        gdata3Result.putAll(appNet);
         //设置GDATA3数据源  数据
         dellGDATA3Data(gdata3Result,result.getTable());
         logger.debug("======GDATA3相关数据：{}",gdata3Result);
@@ -206,7 +233,8 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         Map<String, Object> getHiveResult = getHiveResult(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
         getHiveResult.putAll(getHybbzzl(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
         getHiveResult.putAll(getHybkljzl());
-        getHiveResult.putAll(getHybkFourWeek(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        getHiveResult.putAll(getHybkFourWeek(staticDate.getWeek1Start(), staticDate.getWeek4End()));
+        getHiveResult.putAll(getLogQuality(staticDate.getLogQuaDate()));
         //设置HIVE数据源  数据
         dellGHData(getHiveResult,result);
         logger.debug("======HIVE相关数据：{}",getHiveResult);
@@ -217,6 +245,8 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         logger.debug("======开始设置YMFXYP相关数据============");
         //获取YMFXY数据源 数据
         Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+        Map<String, List<Map<String, String>>> qqwx = getQQWX(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
+        getYMFXYPResult.putAll(qqwx);
         //设置YMFXY数据源  数据
         dellYmfxypData(getYMFXYPResult,result.getTable());
         logger.debug("======YMFXYP相关数据：{}",getYMFXYPResult);
@@ -488,6 +518,20 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     }
 
     /**
+     * GDATA数据源相关数据
+     * @param ksrq
+     * @param jsrq
+     * @return
+     */
+    private Map<String,List<Map<String, String>>> getAppNet(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,List<Map<String, String>>> futureMap = new HashMap<>();
+
+        Future<List<Map<String, String>>> appNet = weeklyReportService.getAppNet(ksrq, jsrq);
+        futureMap.put("appnet",appNet.get());
+        return futureMap;
+    }
+
+    /**
      * 处理GDATA3数据源的数据
      * @param gdata3Result
      * @param table
@@ -540,6 +584,18 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         MapUtil.exchangeReportDate(xjETCOldData,sxjETCNewData);
         xjETC.put("website",sxjETCNewData);
 
+        //appnet  List<Map<String, String>>
+        List<Map<String, String>> appNet = (List<Map<String, String>>)gdata3Result.get("appnet");
+        logger.info("appnet统计：{}",appNet);
+        for(Map<String,String> appNetData : appNet){
+           if(StrUtil.equals(appNetData.get("source"),"netcent")){
+               result.setNet(appNetData.get("numstr"));
+           }
+            if(StrUtil.equals(appNetData.get("source"),"app")){
+                result.setApp(appNetData.get("numstr"));
+            }
+
+        }
 
     }
 
@@ -763,6 +819,21 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     }
 
     /**
+     * YMFXYP数据源相关数据
+     * @param ksrq
+     * @param jsrq
+     * @return
+     */
+    private Map<String,List<Map<String, String>>> getQQWX(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,List<Map<String, String>>> futureMap = new HashMap<>();
+        String ksrqFormat = DateUtil.format(DateUtil.parse(ksrq),"yyyy-MM-dd");
+        String jsrqFormat = DateUtil.format(DateUtil.parse(jsrq),"yyyy-MM-dd");
+        Future<List<Map<String, String>>> appNet = weeklyReportService.getQQWX(ksrqFormat, jsrqFormat);
+        futureMap.put("qqwx",appNet.get());
+        return futureMap;
+    }
+
+    /**
      * 处理ymfxyp数据源的数据
      * @param ymfxypResult
      * @param table
@@ -774,6 +845,29 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         Map<String,Object> gaNewData = new LinkedHashMap<>();
         MapUtil.exchangeReportDate(gaOldData,gaNewData);
         gaqtl.put("website",gaNewData);
+
+        //qqwx
+        List<Map<String, String>> qqwxList = (List<Map<String, String>>)ymfxypResult.get("qqwx");
+        DateTime startDate = DateUtil.parse(staticDate.getWarnStartDate());
+        List<Map<String,String>> qqMapList = new ArrayList<>();
+        List<Map<String,String>> wxMapList = new ArrayList<>();
+        for(Map<String,String> qqwxData : qqwxList){
+            if(StrUtil.equalsIgnoreCase(qqwxData.get("type"),"qq")){
+                Map<String,String> qqMap = new HashMap<>();
+                qqMap.put("dt",qqwxData.get("dt"));
+                qqMap.put("num",qqwxData.get("num"));
+                qqMapList.add(qqMap);
+            }
+
+            if(StrUtil.equalsIgnoreCase(qqwxData.get("type"),"wchart")){
+                Map<String,String> wxMap = new HashMap<>();
+                wxMap.put("dt",qqwxData.get("dt"));
+                wxMap.put("num",qqwxData.get("num"));
+                wxMapList.add(wxMap);
+            }
+        }
+        MapUtil.exchangeCol2DataXByDate(qqMapList,result.getQq_wx().get("qq"),staticDate.getWarnStartDate());
+        MapUtil.exchangeCol2DataXByDate(wxMapList,result.getQq_wx().get("wx"),staticDate.getWarnStartDate());
 
     }
 

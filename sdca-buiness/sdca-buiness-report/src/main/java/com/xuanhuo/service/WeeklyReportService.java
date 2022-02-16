@@ -33,5 +33,9 @@ public interface WeeklyReportService {
 
     Future<List<Map<String, String>>> getLogQuality(String rq);
 
+    Future<List<Map<String, String>>> getAppNet(String ksrq,String jsrq);
+
+    Future<List<Map<String, String>>> getQQWX(String ksrq,String jsrq);
+
 
 }

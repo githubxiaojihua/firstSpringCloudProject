@@ -66,4 +66,28 @@
 		select num,num_type,tablename from al_eventp_hive.gk_data_count where dt=#{rq}
 	</select>
 
+	<!-- app及网站统计 -->
+	<select id="getAppNet" parameterType="String" resultType="map">
+		select source,concat(num,'') numstr,num/n p from (select t.source,sum(t.num) num from (select case when source='apk-analysis-dynamic' then 'app'
+		 when source='api' then 'app' else 'netcent' end source,count(*) num from ids_tag_szwz_bqz_di_fraud where dt between #{ksrq} and #{jsrq} group by source) t group by source)
+		 join
+		 (select count(*) n from ids_tag_szwz_bqz_di_fraud where dt between #{ksrq} and #{jsrq}) b
+	</select>
+
+	<!-- qq 微信统计 -->
+	<select id="getQQWX" parameterType="String" resultType="map">
+		select t.type,concat(t.num,'') num ,t.dt
+		  from ( select'qq' type ,count(*) num,DATE_FORMAT(send_time,'%Y-%m-%d') dt
+		           from internet_fraud_url_discuss_result
+		          where qqCode !=''
+		            and DATE_FORMAT(send_time,'%Y-%m-%d') BETWEEN #{ksrq} and #{jsrq}
+		       GROUP BY DATE_FORMAT(send_time,'%Y-%m-%d')
+         UNION all
+        select 'wchart' type ,concat(count(*),'') num,DATE_FORMAT(send_time,'%Y-%m-%d')dt
+          from internet_fraud_url_discuss_result
+         where wxCode !=''
+           and DATE_FORMAT(send_time,'%Y-%m-%d') BETWEEN #{ksrq} and #{jsrq}
+      GROUP BY DATE_FORMAT(send_time,'%Y-%m-%d'))t
+	</select>
+
 </mapper>
