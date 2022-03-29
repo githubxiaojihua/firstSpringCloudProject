@@ -48,10 +48,12 @@ public class StaticDate {
         this.staticDate = staticDate;
         //默认为当前日期
         Date staticData = DateUtil.date();
-        logQuaDate = DateUtil.format(DateUtil.offsetDay(staticData,-1),"yyyy-MM-dd");
+
         if(StrUtil.isNotEmpty(staticDate)){
             staticData = DateUtil.parse(staticDate,"yyyyMMdd");
         }
+        //统计周期的第三天
+        this.setLogQuaDate(DateUtil.format(DateUtil.offsetDay(staticData,-5),"yyyy-MM-dd"));
         this.setWarnStartDate(DateUtil.format(DateUtil.offsetDay(staticData,-7),"yyyyMMdd"));
         this.setWarnEndDate(DateUtil.format(DateUtil.offsetDay(staticData,-1),"yyyyMMdd"));
         this.setWebsitStartDate(DateUtil.format(DateUtil.offsetDay(staticData,-8),"yyyyMMdd"));

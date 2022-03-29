@@ -13,7 +13,7 @@ public interface WeeklyReportService {
 
     Future<List<Map<String, Object>>> getSDFZSqlResult(String sql);
 
-    Future<List<Map<String, Object>>> getSDFZLogData(String ksrq,String jsrq);
+    Future<List<Map<String, Object>>> getHiveLogData(String ksrq, String jsrq,String type);
 
     Future<List<Map<String, Object>>> getGdata3SqlResult(String sql);
 

@@ -12,13 +12,9 @@ import com.xuanhuo.pojo.StaticDate;
 import com.xuanhuo.service.WeeklyReportService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -205,7 +201,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         logger.debug("======开始设置SDFZ相关数据============");
         //获取SDFZ数据源  数据
         Map<String, Object> sdfzResult = getSDFZResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
-        sdfzResult.putAll(getSDFZLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
+        //sdfzResult.putAll(getSDFZLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
         sdfzResult.putAll(select4weekwarn(staticDate));
         sdfzResult.putAll(select4weekwarnTrend(staticDate));
         //设置SDFZ数据源  数据
@@ -215,7 +211,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
 
     @Override
     public void buildeGDATA3Data() throws Exception{
-        logger.debug("======开始设置GDATA3相关数据============");
+        logger.debug("======开始设置GDATA3相关数据（此部分SQL全部改在HIVE上执行）============");
         //获取GDATA3数据源 数据
         Map<String, Object> gdata3Result = getGDATA3Result(staticDate.getWebsitStartDate(), staticDate.getWebsitEndDate());
         Map<String, List<Map<String, String>>> appNet = getAppNet(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
@@ -235,6 +231,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         getHiveResult.putAll(getHybkljzl());
         getHiveResult.putAll(getHybkFourWeek(staticDate.getWeek1Start(), staticDate.getWeek4End()));
         getHiveResult.putAll(getLogQuality(staticDate.getLogQuaDate()));
+        getHiveResult.putAll(getHiveLogData(staticDate.getWarnStartDate(), staticDate.getWarnEndDate()));
         //设置HIVE数据源  数据
         dellGHData(getHiveResult,result);
         logger.debug("======HIVE相关数据：{}",getHiveResult);
@@ -242,7 +239,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
 
     @Override
     public void buildeYMFXYPData() throws Exception{
-        logger.debug("======开始设置YMFXYP相关数据============");
+        logger.debug("======开始设置YMFXYP相关数据(此部分SQL全部改在HIVE上执行)============");
         //获取YMFXY数据源 数据
         Map<String, Object> getYMFXYPResult = getYMFXYPResult(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
         Map<String, List<Map<String, String>>> qqwx = getQQWX(staticDate.getWarnStartDate(), staticDate.getWarnEndDate());
@@ -339,11 +336,17 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      * @param jsrq
      * @return
      */
-    private Map<String,Object> getSDFZLogData(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
-        Map<String,Object> sdfzResult = new HashMap<>();
-        Future<List<Map<String, Object>>> sdfzLogData = weeklyReportService.getSDFZLogData(ksrq, jsrq);
-        sdfzResult.put("互联网日志接入量统计",sdfzLogData.get());
-        return sdfzResult;
+    private Map<String,Object> getHiveLogData(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
+        Map<String,Object> logReciveResult = new HashMap<>();
+        //移动
+        Future<List<Map<String, Object>>> ydResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"移动");
+        Future<List<Map<String, Object>>> ltResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"联通");
+        Future<List<Map<String, Object>>> dxResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"电信");
+
+        logReciveResult.put("移动日志接入量",ydResult.get());
+        logReciveResult.put("联通日志接入量",ltResult.get());
+        logReciveResult.put("电信日志接入量",dxResult.get());
+        return logReciveResult;
     }
 
     /**
@@ -443,31 +446,31 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         });
         glxyjadstj.put("city",glxyjadstjNewData);
 
-        //互联网日志
-        List<Map<String,Object>> hlyrzjrltj = (ArrayList<Map<String,Object>>) sdfzResult.get("互联网日志接入量统计");
-        Map<String, String> lt = weeklyReportResult.getLt();
-        Map<String, String> yd = weeklyReportResult.getYd();
-        Map<String, String> dx = weeklyReportResult.getDx();
-
-        int dateIndex = 1;
-        //处理实际数据天数少导致数据前移的问题
-        //1、根据统计开始日期初始化日期list
-        //2、根据日期list取对应数据填充，无则0
-        for(String date : staticDate.getDateList()){
-            for(Map<String,Object> map : hlyrzjrltj ){
-                if(StrUtil.equals(String.valueOf(map.get("type")),"山东电信") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
-                    dx.put("data" + dateIndex,String.valueOf(map.get("nu")));
-                }
-                if(StrUtil.equals(String.valueOf(map.get("type")),"山东移动") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
-                    yd.put("data" + dateIndex,String.valueOf(map.get("nu")));
-                }
-
-                if(StrUtil.equals(String.valueOf(map.get("type")),"山东联通") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
-                    lt.put("data" + dateIndex,String.valueOf(map.get("nu")));
-                }
-            }
-            dateIndex++;
-        }
+//        //互联网日志
+//        List<Map<String,Object>> hlyrzjrltj = (ArrayList<Map<String,Object>>) sdfzResult.get("互联网日志接入量统计");
+//        Map<String, String> lt = weeklyReportResult.getLt();
+//        Map<String, String> yd = weeklyReportResult.getYd();
+//        Map<String, String> dx = weeklyReportResult.getDx();
+//
+//        int dateIndex = 1;
+//        //处理实际数据天数少导致数据前移的问题
+//        //1、根据统计开始日期初始化日期list
+//        //2、根据日期list取对应数据填充，无则0
+//        for(String date : staticDate.getDateList()){
+//            for(Map<String,Object> map : hlyrzjrltj ){
+//                if(StrUtil.equals(String.valueOf(map.get("type")),"山东电信") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+//                    dx.put("data" + dateIndex,String.valueOf(map.get("nu")));
+//                }
+//                if(StrUtil.equals(String.valueOf(map.get("type")),"山东移动") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+//                    yd.put("data" + dateIndex,String.valueOf(map.get("nu")));
+//                }
+//
+//                if(StrUtil.equals(String.valueOf(map.get("type")),"山东联通") && StrUtil.equalsIgnoreCase(date,String.valueOf(map.get("rq")))){
+//                    lt.put("data" + dateIndex,String.valueOf(map.get("nu")));
+//                }
+//            }
+//            dateIndex++;
+//        }
 
 
         //预警数据近一周的活跃网站数量统计
@@ -677,20 +680,20 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
 
     /**
      * 处理Hive1.1.0数据源的数据
-     * @param gdata3Result
+     * @param getHiveResult
      */
-    private void dellGHData(Map<String, Object> gdata3Result,WeeklyReportResult weeklyReportResult){
+    private void dellGHData(Map<String, Object> getHiveResult,WeeklyReportResult weeklyReportResult){
         List<Map<String, Object>> table = weeklyReportResult.getTable();
         //虚假ETC专项
         Map<String, Object> xjETC = table.get(3);
-        Map<String,Object> xjETCOldData = (LinkedHashMap)((ArrayList) gdata3Result.get("虚假ETC短信统计")).get(0);
+        Map<String,Object> xjETCOldData = (LinkedHashMap)((ArrayList) getHiveResult.get("虚假ETC短信统计")).get(0);
         Map<String,Object> xjETCNewData = new LinkedHashMap<>();
         MapUtil.exchangeReportDate(xjETCOldData,xjETCNewData);
         xjETC.put("message",xjETCNewData);
 
-        Map<String, String> hybzlData = (Map<String, String>)gdata3Result.get("黑样本累计总量");
-        Map<String, String> hybbzzl = (Map<String, String>)gdata3Result.get("黑样本本周总量");
-        List<Map<String, String>> yhbkjszsj = (List<Map<String, String>>)gdata3Result.get("黑样本库近四周数据");
+        Map<String, String> hybzlData = (Map<String, String>)getHiveResult.get("黑样本累计总量");
+        Map<String, String> hybbzzl = (Map<String, String>)getHiveResult.get("黑样本本周总量");
+        List<Map<String, String>> yhbkjszsj = (List<Map<String, String>>)getHiveResult.get("黑样本库近四周数据");
         List<Map<String, Object>> table_week = weeklyReportResult.getTable_week();
         Map<String, Object> map = table_week.get(1);
         map.put("history_sum",hybzlData.get("nu"));
@@ -700,7 +703,23 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             map.put("week" + yhbkjszsj_Index++,weekMap.get("nu"));
         }
 
-        List<Map<String, String>> logQuality =  (List<Map<String, String>>)gdata3Result.get("互联网日志质量统计");
+        // 互联网日志接入量统计
+        //互联网日志
+        List<Map<String,String>> ltJrl = (ArrayList<Map<String,String>>) getHiveResult.get("移动日志接入量");
+        List<Map<String,String>> ydJrl = (ArrayList<Map<String,String>>) getHiveResult.get("联通日志接入量");
+        List<Map<String,String>> dxJrl = (ArrayList<Map<String,String>>) getHiveResult.get("电信日志接入量");
+
+        Map<String, String> lt = weeklyReportResult.getLt();
+        Map<String, String> yd = weeklyReportResult.getYd();
+        Map<String, String> dx = weeklyReportResult.getDx();
+
+        MapUtil.exchangeCol2DataXByDate(ltJrl,lt,staticDate.getWarnStartDate());
+        MapUtil.exchangeCol2DataXByDate(ydJrl,yd,staticDate.getWarnStartDate());
+        MapUtil.exchangeCol2DataXByDate(dxJrl,dx,staticDate.getWarnStartDate());
+
+
+
+        List<Map<String, String>> logQuality =  (List<Map<String, String>>)getHiveResult.get("互联网日志质量统计");
         if(logQuality != null){
             Map<String, Object> quality = weeklyReportResult.getQuality();
             //总量统计
