@@ -28,4 +28,9 @@ public class DataSourceConstants {
      * HIVE数据源
      */
     public static final String DS_KEY_HIVE_1_1_0 = "hive1.1.0";
+
+    /**
+     * DATACL
+     */
+    public static final String  DS_KEY_DATACL = "datacl";
 }

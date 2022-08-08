@@ -1,6 +1,7 @@
 package com.xuanhuo.controller;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.unit.DataUnit;
 import cn.hutool.core.util.StrUtil;
 import com.xuanhuo.common.reportResult.IWeeklyReportResultBuilder;
 import com.xuanhuo.common.reportResult.IWeeklyReportResultDirector;
@@ -14,10 +15,8 @@ import com.xuanhuo.common.reportResult.WeeklyReportResult;
 import com.xuanhuo.service.WeeklyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -58,26 +57,39 @@ public class WeeklyReportController extends BaseController {
      * @throws InterruptedException
      */
     @GetMapping("/data")
-    public AjaxResult getWeeklyReportData(String date) throws ExecutionException, InterruptedException,Exception {
-
+    public AjaxResult getWeeklyReportData(String date, boolean recount) throws ExecutionException, InterruptedException,Exception {
         staticDate = new StaticDate(date);
         logger.debug("======开始统计本周数据:");
         logData(staticDate);
-        //本周数据
+        //本周数据先取序列化后的，没有再重新统计
+        if(!recount){
+            if(StrUtil.isEmpty(date)){
+                date = DateUtil.format(DateUtil.date(),"yyyyMMdd");
+            }
+            WeeklyReportResult thisWeeklyReport = getSerializableReport(date);
+            if(thisWeeklyReport != null){
+                logger.info("读取本周序列化数据：");
+                return AjaxResult.success(thisWeeklyReport);
+            }
+        }
+
+
         IWeeklyReportResultBuilder builder = new WeeklyReportResultBuilderImpl(staticDate);
         IWeeklyReportResultDirector director = new WeeklyReportResultDirectorImpl(builder);
         director.buildWeeklyReportResult();
 
         //上周数据
-        WeeklyReportResult lastWeeklyReport = getLastWeekReport(date);
-        if(lastWeeklyReport != null){
+        //统计时间
+        String lastWeekDate = date;
+        if(StrUtil.isEmpty(lastWeekDate)){
+            lastWeekDate = DateUtil.format(DateUtil.date(),"yyyyMMdd");
+        }
+        lastWeekDate = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(lastWeekDate,"yyyyMMdd"),-7)),"yyyyMMdd");
+        WeeklyReportResult lastWeeklyReport = getSerializableReport(lastWeekDate);
+        if(lastWeeklyReport != null && !recount){
+            logger.info("读取上周序列化数据：");
             builder.buildeLastWeekData(lastWeeklyReport);
         }else{
-            String lastWeekDate = date;
-            if(StrUtil.isEmpty(lastWeekDate)){
-                lastWeekDate = DateUtil.format(DateUtil.date(),"yyyyMMdd");
-            }
-            lastWeekDate = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(lastWeekDate,"yyyyMMdd"),-7)),"yyyyMMdd");
             staticDate = new StaticDate(lastWeekDate);
             logger.debug("======开始统计上周数据:");
             logData(staticDate);
@@ -85,14 +97,22 @@ public class WeeklyReportController extends BaseController {
             IWeeklyReportResultDirector lastWeekDirector = new WeeklyReportResultDirectorImpl(lastWeekBuilder);
             lastWeekDirector.buildWeeklyReportResult();
             WeeklyReportResult lastWeekResult = lastWeekBuilder.getWeeklyReportResult();
+            logger.info("=======序列化上周数据：日期：{}",date);
             serializeResult(lastWeekResult,lastWeekDate);
+            logger.info("=======结束序列化上周数据：日期：{}",date);
             builder.buildeLastWeekData(lastWeekResult);
         }
 
         WeeklyReportResult weeklyReportResult = builder.getWeeklyReportResult();
+        logger.info("=======序列化本周数据：日期：{}",date);
         serializeResult(weeklyReportResult,date);
-
+        logger.info("=======结束序列化本周数据：日期：{}",date);
         return AjaxResult.success(weeklyReportResult);
+    }
+
+    @Scheduled(cron = "0 0 20 * * *")
+    public AjaxResult getWeeklyReportData() throws ExecutionException, InterruptedException,Exception {
+        return this.getWeeklyReportData(DateUtil.format(new Date(),"yyyyMMdd"),true);
     }
 
     private void logData(StaticDate staticDate){
@@ -122,13 +142,8 @@ public class WeeklyReportController extends BaseController {
      * 反序列化上周数据
      * @return
      */
-    private WeeklyReportResult getLastWeekReport(String date){
+    private WeeklyReportResult getSerializableReport(String date){
         //1、初始化相关类
-        //统计时间
-        if(StrUtil.isEmpty(date)){
-            date = DateUtil.format(DateUtil.date(),"yyyyMMdd");
-        }
-        date = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(date,"yyyyMMdd"),-7)),"yyyyMMdd");
         SerializableUtil<WeeklyReportResult> serializableUtil = new SerializableUtil<>();
         WeeklyReportResult weeklyReportResult = serializableUtil.deSerializableObjectFromFile(serializableFile+"."+date, new Class[]{WeeklyReportResult.class,List.class,byte[].class}, WeeklyReportResult.class);
         return weeklyReportResult;

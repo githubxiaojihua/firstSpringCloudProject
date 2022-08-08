@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@PropertySource("classpath:multiDataSource.properties")
+@PropertySource("classpath:multiDataSource-dev.properties")
 public class MultiDataSourceConfig {
 
     @Bean(DataSourceConstants.DS_KEY_SDFZ)
@@ -37,6 +37,12 @@ public class MultiDataSourceConfig {
     @Bean(DataSourceConstants.DS_KEY_YMFXYP)
     @ConfigurationProperties(prefix = "spring.datasource.ymfxyp")
     public DataSource ymfxypDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(DataSourceConstants.DS_KEY_DATACL)
+    @ConfigurationProperties(prefix = "spring.datasource.test")
+    public DataSource dataClDataSource() {
         return DataSourceBuilder.create().build();
     }
 
@@ -65,6 +71,7 @@ public class MultiDataSourceConfig {
         dataSourceMap.put(DataSourceConstants.DS_KEY_GDATA3, gdata3DataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_YMFXYP, ymfxypDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_HIVE_1_1_0,hivepDataSource());
+        dataSourceMap.put(DataSourceConstants.DS_KEY_DATACL,dataClDataSource());
         //设置动态数据源
         MultiDataSource dynamicDataSource = new MultiDataSource();
         dynamicDataSource.setTargetDataSources(dataSourceMap);

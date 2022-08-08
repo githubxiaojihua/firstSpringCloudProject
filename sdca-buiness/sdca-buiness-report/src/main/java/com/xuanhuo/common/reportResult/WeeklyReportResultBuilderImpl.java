@@ -748,6 +748,8 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
 
 
             for(Map<String,String> logData : logQuality){
+
+                //全量数据
                 if(StrUtil.equals(logData.get("num_type"),"全量数据")){
 
 
@@ -766,16 +768,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
                     quality.put("total",totalMap);
                 }
 
-                if(StrUtil.equals(logData.get("num_type"),"host不为空")){
-
-                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
-                        hostData1 = Double.parseDouble(logData.get("num"))/100000000;
-                        String data1 = NumberUtil.roundStr(hostData1,2);
-                        hostNotNullMap.put("data1", data1);
-                    }
-                    quality.put("host_not_null",hostNotNullMap);
-                }
-
+                //https
                 if(StrUtil.equals(logData.get("num_type"),"ssl_sni不为空")){
 
 
@@ -791,8 +784,17 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
                     quality.put("ssl_sni_not_null",sslNotNullMap);
                 }
 
+
+
             }
 
+            //http=总量-sni不为空
+            hostData1 = totalData1 - sslData1;
+            String data1 = NumberUtil.roundStr(hostData1,2);
+            hostNotNullMap.put("data1", data1);
+            quality.put("host_not_null",hostNotNullMap);
+
+            //过滤后的http = 总量 - sni不为空
             double hostData3 = NumberUtil.round(totalData2 - sslData3,2).doubleValue();
 
             String hostData2 = NumberUtil.roundStr(hostData1/totalData1,2);
