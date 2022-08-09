@@ -11,5 +11,9 @@ public interface DataClService {
 
     List<Map<String,String>> getSzzh(Map param);
 
+    List<Map<String,String>> getSzzhResult(Map param);
+
     int updateSzzh(Map<String,String> params);
+
+    void insertSzzhResult(List<Map<String,Object>> list);
 }

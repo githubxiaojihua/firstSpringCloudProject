@@ -15,5 +15,9 @@ public interface DataClMapper {
 	 */
 	List<Map<String,String>> getSzzh(Map param);
 
+	List<Map<String,String>> getSzzhOrigin(Map param);
+
 	int updateSzzh(Map<String,String> params);
+
+	void insertSzzhResult(List<Map<String,Object>> list);
 }

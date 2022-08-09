@@ -24,7 +24,19 @@ public class DataClServiceImpl implements DataClService {
 
     @MultiDataSource(DataSourceConstants.DS_KEY_DATACL)
     @Override
+    public List<Map<String, String>> getSzzhResult(Map param) {
+        return  dataClMapper.getSzzhOrigin(null);
+    }
+
+    @MultiDataSource(DataSourceConstants.DS_KEY_DATACL)
+    @Override
     public int updateSzzh(Map<String, String> params) {
         return dataClMapper.updateSzzh(params);
+    }
+
+    @MultiDataSource(DataSourceConstants.DS_KEY_DATACL)
+    @Override
+    public void insertSzzhResult(List<Map<String, Object>> list) {
+        dataClMapper.insertSzzhResult(list);
     }
 }

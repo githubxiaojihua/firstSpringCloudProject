@@ -2,10 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanhuo.mapper.DataClMapper">
 
+	<select id="getSzzhOrigin" resultType="map" parameterType="map">
+		select id,url,type,date,szzh
+		from szzh_origin
+	</select>
+
 	<select id="getSzzh" resultType="map" parameterType="map">
 		select id,zhxx
-		from szzh
+		from szzh_origin
 	</select>
+
+	<insert id="insertSzzhResult" parameterType="map">
+		INSERT INTO szzh_result(account,account_type,url,date,type)
+		VALUES
+		<foreach collection="list" item="item" separator="," close=";">
+			(#{item.account},#{item.accountType},#{item.url},#{item.date},#{item.type})
+		</foreach>
+
+	</insert>
 
 	<update id="updateSzzh" parameterType="map">
 		update szzh
