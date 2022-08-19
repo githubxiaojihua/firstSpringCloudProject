@@ -26,6 +26,7 @@
         <druid.version>1.2.6</druid.version>
         <hive.version>1.1.0</hive.version>
         <hadoop.version>2.6.0</hadoop.version>
+        <odps.jdbc.version>3.0.1</odps.jdbc.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -146,6 +147,12 @@
                 <version>${druid.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.aliyun.odps</groupId>
+                <artifactId>odps-jdbc</artifactId>
+                <version>${odps.jdbc.version}</version>
+                <classifier>jar-with-dependencies</classifier>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

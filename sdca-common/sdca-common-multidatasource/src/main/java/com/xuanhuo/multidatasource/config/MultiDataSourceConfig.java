@@ -19,12 +19,18 @@ import java.util.Properties;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@PropertySource("classpath:multiDataSource-dev.properties")
+@PropertySource("classpath:multiDataSource.properties")
 public class MultiDataSourceConfig {
 
     @Bean(DataSourceConstants.DS_KEY_SDFZ)
     @ConfigurationProperties(prefix = "spring.datasource.sdfz")
     public DataSource sdfzDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(DataSourceConstants.DS_KEY_HLW_FZ)
+    @ConfigurationProperties(prefix = "spring.datasource.flwfz")
+    public DataSource hlwfzDataSource() {
         return DataSourceBuilder.create().build();
     }
 
@@ -53,6 +59,18 @@ public class MultiDataSourceConfig {
     }
 
     /**
+     * 生产环境的HIVE是1.1.0如果用springboot内置连接池会有问题，
+     * 需改成druid
+     * @return
+     */
+    @Bean(DataSourceConstants.DS_KEY_ODPS_3_0_1)
+    @ConfigurationProperties(prefix = "spring.datasource.odps301")
+    public DataSource odpsDataSource() {
+        DruidDataSource druidDataSource = new DruidDataSource();
+        return druidDataSource;
+    }
+
+    /**
      * 设置动态数据源
      * @return
      */
@@ -62,9 +80,11 @@ public class MultiDataSourceConfig {
         //初始化多数据源
         Map<Object, Object> dataSourceMap = new HashMap<>(2);
         dataSourceMap.put(DataSourceConstants.DS_KEY_SDFZ, sdfzDataSource());
+        dataSourceMap.put(DataSourceConstants.DS_KEY_HLW_FZ, hlwfzDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_GDATA3, gdata3DataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_YMFXYP, ymfxypDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_HIVE_1_1_0,hivepDataSource());
+        dataSourceMap.put(DataSourceConstants.DS_KEY_ODPS_3_0_1,odpsDataSource());
         //设置动态数据源
         MultiDataSource dynamicDataSource = new MultiDataSource();
         dynamicDataSource.setTargetDataSources(dataSourceMap);

@@ -8,11 +8,11 @@ server:
 spring:
   application:
     name: sdca-buiness-report
-  cloud:
-    nacos:
-      discovery:
-        #注册中心地址
-        server-addr: 127.0.0.1:8848
+#  cloud:
+#    nacos:
+#      discovery:
+#        #注册中心地址
+#        server-addr: 127.0.0.1:8848
 
 #actuator监控设置
 management:

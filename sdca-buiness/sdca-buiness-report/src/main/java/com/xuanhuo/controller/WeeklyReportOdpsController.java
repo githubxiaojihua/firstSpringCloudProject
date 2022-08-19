@@ -1,7 +1,6 @@
 package com.xuanhuo.controller;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.math.MathUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.xuanhuo.common.core.constant.ReportConstants;
@@ -11,6 +10,7 @@ import com.xuanhuo.common.core.utils.MapUtil;
 import com.xuanhuo.common.core.utils.SerializableUtil;
 import com.xuanhuo.pojo.StaticDate;
 import com.xuanhuo.pojo.WeeklyReportResult;
+import com.xuanhuo.service.WeeklyReportOdpsService;
 import com.xuanhuo.service.WeeklyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,18 +19,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 // TODO: 整个类待优化重构，目前controller中的逻辑太多
 @RestController
-@RequestMapping("/hive/weeklyReport")
-public class WeeklyReportController extends BaseController {
+@RequestMapping("/weeklyReport")
+public class WeeklyReportOdpsController extends BaseController {
 
     @Autowired
-    private WeeklyReportService weeklyReportService;
+    private WeeklyReportOdpsService weeklyReportService;
 
     @Value("${report.serializable-file}")
     private String serializableFile;
@@ -300,7 +299,7 @@ public class WeeklyReportController extends BaseController {
             param.put("jsrq",jsrq);
             weeklyReportService.callSqlFunction(param);
             logger.debug("======bbbm:{},zbbm:{},ksrq:{},jsrq:{}。获取的SQL:{}",param.get("bbbm"),param.get("zbbm"),param.get("ksrq"),param.get("jsrq"),param.get("sql"));
-            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportService.getHiveSqlResult(param.get("sql"));
+            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportService.getOdpsSqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),hiveSqlResult);
 
         }

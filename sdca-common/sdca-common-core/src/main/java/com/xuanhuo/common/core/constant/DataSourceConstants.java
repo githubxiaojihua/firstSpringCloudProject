@@ -10,6 +10,11 @@ public class DataSourceConstants {
     public static final String DS_KEY_SDFZ = "sdfz";
 
     /**
+     * 山东反诈数据源（RDS）
+     */
+    public static final String DS_KEY_HLW_FZ = "flwfz";
+
+    /**
      * 阿里ADS数据源
      */
     public static final String DS_KEY_GDATA3 = "gdata3";
@@ -28,4 +33,9 @@ public class DataSourceConstants {
      * HIVE数据源
      */
     public static final String DS_KEY_HIVE_1_1_0 = "hive1.1.0";
+
+    /**
+     * odps数据源
+     */
+    public static final String DS_KEY_ODPS_3_0_1 = "odps3.0.1";
 }
