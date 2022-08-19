@@ -38,4 +38,9 @@ public class DataSourceConstants {
      * odps数据源
      */
     public static final String DS_KEY_ODPS_3_0_1 = "odps3.0.1";
+
+    /*
+     * DATACL
+     */
+    public static final String  DS_KEY_DATACL = "datacl";
 }

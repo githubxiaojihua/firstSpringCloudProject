@@ -51,12 +51,13 @@ public class ReportConstants {
         SDFZ_CONFIG.put("1038","地市预警分类排序");
 
 
+        //SQL数据源改成了HIVE
         GDATA3_CONFIG.put("1021","贷款、代办信用卡类网站统计");
         GDATA3_CONFIG.put("1024","刷单返利类网站统计");
         GDATA3_CONFIG.put("1027","杀猪盘类网站统计");
         GDATA3_CONFIG.put("1030","虚假ETC网站统计");
         GDATA3_CONFIG.put("1036","杀猪盘类网站分类统计");
-
+        //SQL数据源改成了HIVE
         YMFXYP_CONFIG.put("1035","公安提供网站统计");
 
         HIVE_CONFIG.put("1033","虚假ETC短信统计");

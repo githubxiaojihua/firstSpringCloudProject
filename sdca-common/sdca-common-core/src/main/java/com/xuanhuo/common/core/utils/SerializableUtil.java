@@ -20,9 +20,10 @@ public class SerializableUtil<T extends Serializable> {
     public void serializableObjectToFile(T object, String path) {
         //文件不存在则创建
         File file = FileUtil.file(path);
-        if(!FileUtil.exist(file)){
-            FileUtil.touch(file);
+        if(FileUtil.exist(file)){
+            FileUtil.del(file);
         }
+        FileUtil.touch(file);
         //序列化
         try( ObjectOutputStream outputStream =  new ObjectOutputStream(new FileOutputStream(file));){
             outputStream.writeObject(object);

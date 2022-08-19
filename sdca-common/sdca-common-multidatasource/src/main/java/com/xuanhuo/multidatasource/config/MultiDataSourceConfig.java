@@ -46,6 +46,12 @@ public class MultiDataSourceConfig {
         return DataSourceBuilder.create().build();
     }
 
+    @Bean(DataSourceConstants.DS_KEY_DATACL)
+    @ConfigurationProperties(prefix = "spring.datasource.test")
+    public DataSource dataClDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
     /**
      * 生产环境的HIVE是1.1.0如果用springboot内置连接池会有问题，
      * 需改成druid
@@ -85,6 +91,7 @@ public class MultiDataSourceConfig {
         dataSourceMap.put(DataSourceConstants.DS_KEY_YMFXYP, ymfxypDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_HIVE_1_1_0,hivepDataSource());
         dataSourceMap.put(DataSourceConstants.DS_KEY_ODPS_3_0_1,odpsDataSource());
+        dataSourceMap.put(DataSourceConstants.DS_KEY_DATACL,dataClDataSource());
         //设置动态数据源
         MultiDataSource dynamicDataSource = new MultiDataSource();
         dynamicDataSource.setTargetDataSources(dataSourceMap);

@@ -1,5 +1,6 @@
 package com.xuanhuo.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.xuanhuo.common.core.constant.DataSourceConstants;
 import com.xuanhuo.mapper.NativeSqlMapper;
 import com.xuanhuo.mapper.WeeklyReportMapper;
@@ -55,13 +56,16 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         return execNativeSql(sql);
     }
 
-    @MultiDataSource(DataSourceConstants.DS_KEY_SDFZ)
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
     @Async("taskExecutor")
     @Override
-    public Future<List<Map<String, Object>>> getSDFZLogData(String ksrq, String jsrq) {
+    public Future<List<Map<String, Object>>> getHiveLogData(String ksrq, String jsrq,String type) {
         Map<String,String> param = new HashMap<>();
+        ksrq = DateUtil.format(DateUtil.parse(ksrq,"yyyyMMdd"),"yyyy-MM-dd");
+        jsrq = DateUtil.format(DateUtil.parse(jsrq,"yyyyMMdd"),"yyyy-MM-dd");
         param.put("ksrq",ksrq);
         param.put("jsrq",jsrq);
+        param.put("type",type);
         List<Map<String, Object>> result = weeklyReportMapper.selectLogByService(param);
         return new AsyncResult<>(result);
     }
@@ -95,7 +99,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
      * @param sql
      * @return
      */
-    @MultiDataSource(DataSourceConstants.DS_KEY_GDATA3)
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
     @Async("taskExecutor")
     public Future<List<Map<String, Object>>> getGdata3SqlResult(String sql){
         return execNativeSql(sql);
@@ -156,10 +160,40 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     }
 
     @Override
-    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
     @Async("taskExecutor")
     public Future<List<Map<String, Object>>> getYMFXYPSqlResult(String sql) {
         return execNativeSql(sql);
+    }
+
+    /**
+     * app及网站统计
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getAppNet(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> appNet = weeklyReportMapper.getAppNet(param);
+        return new AsyncResult<>(appNet);
+    }
+
+    /**
+     * qq及微信
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getQQWX(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> qqWx = weeklyReportMapper.getQQWX(param);
+        return new AsyncResult<>(qqWx);
     }
 
     /**

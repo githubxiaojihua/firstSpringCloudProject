@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanhuo.mapper.WeeklyReportMapper">
+
+	<!-- 调用f_tj_sql来获取相关统计SQL -->
+	<select id="callSqlFunction" parameterType="map" statementType="CALLABLE">
+		{#{sql,jdbcType=VARCHAR,mode=OUT} =
+			call f_tj_sql(
+					#{bbbm,jdbcType=VARCHAR,mode=IN},
+					#{zbbm,jdbcType=VARCHAR,mode=IN},
+					#{ksrq,jdbcType=VARCHAR,mode=IN},
+					#{jsrq,jdbcType=VARCHAR,mode=IN}) }
+	</select>
+
+	<!-- 日志统计 -->
+	<select id="selectLogByService" parameterType="map" resultType="map">
+		select type,concat(ROUND(sum(value)/100000000),'') nu,rq
+		  from sdyyssj
+		 where rq between #{ksrq} and #{jsrq} group by type,rq
+		 order by type,rq
+	</select>
+
+	<!-- 预警数据近一周的活跃网站数量统计 -->
+	<select id="select4weekwarn" parameterType="com.xuanhuo.pojo.StaticDate" resultType="map">
+		SELECT COUNT(DISTINCT host) nu FROM ids_yjsj WHERE DTS BETWEEN #{week1Start} AND #{week1End}
+		union
+		SELECT COUNT(DISTINCT host) nu FROM ids_yjsj WHERE DTS BETWEEN #{week2Start} AND #{week2End}
+		union
+		SELECT COUNT(DISTINCT host) nu FROM ids_yjsj WHERE DTS BETWEEN #{week3Start} AND #{week3End}
+		union
+		SELECT COUNT(DISTINCT host) nu FROM ids_yjsj WHERE DTS BETWEEN #{week4Start} AND #{week4End}
+	</select>
+
+	<!-- 预警数据近四周变化趋势统计 -->
+	<select id="select4weekwarnTrend" parameterType="com.xuanhuo.pojo.StaticDate" resultType="map">
+		SELECT COUNT(1) nu FROM ids_yjsj WHERE DTS BETWEEN #{week1Start} AND #{week1End}
+		union
+		SELECT COUNT(1) nu FROM ids_yjsj WHERE DTS BETWEEN #{week2Start} AND #{week2End}
+		union
+		SELECT COUNT(1) nu FROM ids_yjsj WHERE DTS BETWEEN #{week3Start} AND #{week3End}
+		union
+		SELECT COUNT(1) nu FROM ids_yjsj WHERE DTS BETWEEN #{week4Start} AND #{week4End}
+	</select>
+
+	<!-- 黑样本库本周总量 -->
+	<select id="getHybbzzl" parameterType="map" resultType="map">
+		<![CDATA[
+			SELECT COUNT(1) nu FROM al_eventp_hive.ids_tag_szwz_bqz_di_fraud where dt >= #{ksrq} and dt <= #{jsrq}
+		]]>
+	</select>
+
+	<!-- 累计总量 -->
+	<select id="getHybkljzl" resultType="map">
+			SELECT COUNT(1) nu FROM al_eventp_hive.ids_tag_szwz_bqz_di_fraud
+	</select>
+
+	<!-- 黑样本库近四周数据 -->
+	<select id="getHybkFourWeek" parameterType="map" resultType="map">
+		SELECT weekofyear(FROM_UNIXTIME(UNIX_TIMESTAMP(dt,'yyyymmdd'),'yyyy-mm-dd')) week,COUNT(1) nu from al_eventp_hive.ids_tag_szwz_bqz_di_fraud
+		where dt between #{ksrq} and #{jsrq}
+		group by weekofyear(FROM_UNIXTIME(UNIX_TIMESTAMP(dt,'yyyymmdd'),'yyyy-mm-dd'))
+	</select>
+
+	<!-- 日志质量 -->
+	<select id="getLogQuality" parameterType="String" resultType="map">
+		select num,num_type,tablename from al_eventp_hive.gk_data_count where dt=#{rq}
+	</select>
+
+</mapper>
