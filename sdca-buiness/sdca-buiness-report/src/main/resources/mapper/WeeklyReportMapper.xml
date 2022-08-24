@@ -24,31 +24,31 @@
 		from st_data_count_dm
 		where tablename='hlw_fz.t_logs'
 		  and num_type=#{type}
-		  and day_id between #{ksrq} and #{jsrq}
+		  and day_id between DATE_FORMAT(to_date(#{ksrq},'yyyyMMdd'),'yyyy-MM-dd') and DATE_FORMAT(to_date(#{jsrq},'yyyyMMdd'),'yyyy-MM-dd')
 		group by day_id
 		order by day_id
 	</select>
 
 	<!-- 预警数据近一周的活跃网站数量统计 -->
 	<select id="select4weekwarn" parameterType="com.xuanhuo.pojo.StaticDate" resultType="map">
-		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN #{week1Start} AND #{week1End}
+		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week1Start},'%Y-%m-%d') AND date_format(#{week1End},'%Y-%m-%d')
 		union
-		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN #{week2Start} AND #{week2End}
+		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week2Start},'%Y-%m-%d') AND date_format(#{week2End},'%Y-%m-%d')
 		union
-		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN #{week3Start} AND #{week3End}
+		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week3Start},'%Y-%m-%d') AND date_format(#{week3End},'%Y-%m-%d')
 		union
-		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN #{week4Start} AND #{week4End}
+		SELECT COUNT(DISTINCT host) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week4Start},'%Y-%m-%d') AND date_format(#{week4End},'%Y-%m-%d')
 	</select>
 
 	<!-- 预警数据近四周变化趋势统计 -->
 	<select id="select4weekwarnTrend" parameterType="com.xuanhuo.pojo.StaticDate" resultType="map">
-		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN #{week1Start} AND #{week1End}
+		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week1Start},'%Y-%m-%d') AND date_format(#{week1End},'%Y-%m-%d')
 		union
-		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN #{week2Start} AND #{week2End}
+		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week2Start},'%Y-%m-%d') AND date_format(#{week2End},'%Y-%m-%d')
 		union
-		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN #{week3Start} AND #{week3End}
+		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week3Start},'%Y-%m-%d') AND date_format(#{week3End},'%Y-%m-%d')
 		union
-		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN #{week4Start} AND #{week4End}
+		SELECT COUNT(1) nu FROM yjsj_push WHERE dt BETWEEN date_format(#{week4Start},'%Y-%m-%d') AND date_format(#{week4End},'%Y-%m-%d')
 	</select>
 
 	<!-- 黑样本库本周总量 -->
@@ -85,17 +85,12 @@
 	<select id="getAppNet" parameterType="String" resultType="map">
 		select source,concat(sum(t.num),'') numstr
 		  from (
-		  		select case when source like '%apk%' or source like '%api%' then 'app' else 'netcent' end source,
+		  		select case when source in  ('apk-analysis-dynamic','api','api_app_dyn_analysis') then 'app' else 'netcent' end source,
 		  		       count(1) num
-		  		  from al_eventp_hive.ids_tag_szwz_bqz_di_fraud
+		  		  from ids_tag_szwz_bqz_di_fraud
 		  		 where dt between #{ksrq} and #{jsrq}
 		  	    group by source
-		  	    union all
-		  	    select case when host='' then 'app' else 'app' end source,
-		  	           count(host) num
-		  	      from al_eventp_hive.ids_tag_apk_results_bqz_di
-		  	     where dt between #{ksrq} and #{jsrq}
-		  	    group by host
+
 		  ) t
 		group by source
 	</select>

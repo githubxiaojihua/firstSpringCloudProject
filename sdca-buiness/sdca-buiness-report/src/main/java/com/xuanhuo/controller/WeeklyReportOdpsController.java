@@ -8,8 +8,8 @@ import com.xuanhuo.common.core.controller.BaseController;
 import com.xuanhuo.common.core.domain.AjaxResult;
 import com.xuanhuo.common.core.utils.MapUtil;
 import com.xuanhuo.common.core.utils.SerializableUtil;
+import com.xuanhuo.common.reportResult.WeeklyReportResult;
 import com.xuanhuo.pojo.StaticDate;
-import com.xuanhuo.pojo.WeeklyReportResult;
 import com.xuanhuo.service.WeeklyReportOdpsService;
 import com.xuanhuo.service.WeeklyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +24,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 // TODO: 整个类待优化重构，目前controller中的逻辑太多
-@RestController
-@RequestMapping("/weeklyReport")
+//@RestController
+//@RequestMapping("/weeklyReport")
 public class WeeklyReportOdpsController extends BaseController {
 
     @Autowired
@@ -64,7 +64,8 @@ public class WeeklyReportOdpsController extends BaseController {
         //统计时间
         StaticDate staticDate = new StaticDate(date);
         //初始化与python接口数据对象
-        WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
+        //WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
+        WeeklyReportResult weeklyReportResult = new WeeklyReportResult();
         //上周数据
         WeeklyReportResult lastWeeklyReport = getLastWeekReport();
         if(lastWeeklyReport != null){
@@ -131,8 +132,8 @@ public class WeeklyReportOdpsController extends BaseController {
         date = DateUtil.format((DateUtil.offsetDay(DateUtil.parse(date,"yyyyMMdd"),-7)),"yyyyMMdd");
         StaticDate staticDate = new StaticDate(date);
         //初始化与python接口数据对象
-        WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
-
+        //WeeklyReportResult weeklyReportResult = new WeeklyReportResult(staticDate);
+        WeeklyReportResult weeklyReportResult = new WeeklyReportResult();
         //2、统计数据
         logger.debug("======开始统计上周数据:");
         logger.debug("======报表日期：{}月{}日",staticDate.getMonth(),staticDate.getDay());
@@ -209,7 +210,7 @@ public class WeeklyReportOdpsController extends BaseController {
      */
     public Map<String,Object> getSDFZLogData(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
         Map<String,Object> sdfzResult = new HashMap<>();
-        Future<List<Map<String, Object>>> sdfzLogData = weeklyReportService.getSDFZLogData(ksrq, jsrq);
+        Future<List<Map<String, Object>>> sdfzLogData = weeklyReportService.getSDFZLogData(ksrq, jsrq,null);
         sdfzResult.put("互联网日志接入量统计",sdfzLogData.get());
         return sdfzResult;
     }
@@ -299,7 +300,7 @@ public class WeeklyReportOdpsController extends BaseController {
             param.put("jsrq",jsrq);
             weeklyReportService.callSqlFunction(param);
             logger.debug("======bbbm:{},zbbm:{},ksrq:{},jsrq:{}。获取的SQL:{}",param.get("bbbm"),param.get("zbbm"),param.get("ksrq"),param.get("jsrq"),param.get("sql"));
-            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportService.getOdpsSqlResult(param.get("sql"));
+            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportService.getHiveSqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),hiveSqlResult);
 
         }

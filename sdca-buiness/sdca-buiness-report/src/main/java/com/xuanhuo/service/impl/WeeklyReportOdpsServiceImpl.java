@@ -59,10 +59,11 @@ public class WeeklyReportOdpsServiceImpl implements WeeklyReportOdpsService {
     @MultiDataSource(DataSourceConstants.DS_KEY_ODPS_3_0_1)
     @Async("taskExecutor")
     @Override
-    public Future<List<Map<String, Object>>> getSDFZLogData(String ksrq, String jsrq) {
+    public Future<List<Map<String, Object>>> getSDFZLogData(String ksrq, String jsrq,String type) {
         Map<String,String> param = new HashMap<>();
         param.put("ksrq",ksrq);
         param.put("jsrq",jsrq);
+        param.put("type",type);
         List<Map<String, Object>> result = weeklyReportMapper.selectLogByService(param);
         return new AsyncResult<>(result);
     }
@@ -96,7 +97,7 @@ public class WeeklyReportOdpsServiceImpl implements WeeklyReportOdpsService {
      * @param sql
      * @return
      */
-    @MultiDataSource(DataSourceConstants.DS_KEY_GDATA3)
+    @MultiDataSource(DataSourceConstants.DS_KEY_ODPS_3_0_1)
     @Async("taskExecutor")
     public Future<List<Map<String, Object>>> getGdata3SqlResult(String sql){
         return execNativeSql(sql);
@@ -108,9 +109,9 @@ public class WeeklyReportOdpsServiceImpl implements WeeklyReportOdpsService {
      * @return
      */
     @Override
-    @MultiDataSource(DataSourceConstants.DS_KEY_ODPS_3_0_1)
+    @MultiDataSource(DataSourceConstants.DS_KEY_HIVE_1_1_0)
     @Async("taskExecutor")
-    public Future<List<Map<String, Object>>> getOdpsSqlResult(String sql) {
+    public Future<List<Map<String, Object>>> getHiveSqlResult(String sql) {
         return execNativeSql(sql);
     }
 
@@ -156,11 +157,47 @@ public class WeeklyReportOdpsServiceImpl implements WeeklyReportOdpsService {
         return new AsyncResult<>(hybkFourWeek);
     }
 
+    /**
+     * 将数据源DS_KEY_YMFXYP改为DS_KEY_ODPS_3_0_1数据源
+     * @param sql
+     * @return
+     */
     @Override
-    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @MultiDataSource(DataSourceConstants.DS_KEY_ODPS_3_0_1)
     @Async("taskExecutor")
     public Future<List<Map<String, Object>>> getYMFXYPSqlResult(String sql) {
         return execNativeSql(sql);
+    }
+
+    /**
+     * app及网站统计
+     *  将数据源DS_KEY_HIVE_1_1_0改为DS_KEY_ODPS_3_0_1
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_ODPS_3_0_1)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getAppNet(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> appNet = weeklyReportMapper.getAppNet(param);
+        return new AsyncResult<>(appNet);
+    }
+
+    /**
+     * qq及微信
+     * @return
+     */
+    @Override
+    @MultiDataSource(DataSourceConstants.DS_KEY_YMFXYP)
+    @Async("taskExecutor")
+    public Future<List<Map<String, String>>> getQQWX(String ksrq,String jsrq) {
+        Map<String,String> param = new HashMap<>();
+        param.put("ksrq",ksrq);
+        param.put("jsrq",jsrq);
+        List<Map<String, String>> qqWx = weeklyReportMapper.getQQWX(param);
+        return new AsyncResult<>(qqWx);
     }
 
     /**

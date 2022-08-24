@@ -9,6 +9,7 @@ import com.xuanhuo.common.core.utils.MapUtil;
 import com.xuanhuo.common.core.utils.SerializableUtil;
 import com.xuanhuo.common.core.utils.SpringApplicationContextUtil;
 import com.xuanhuo.pojo.StaticDate;
+import com.xuanhuo.service.WeeklyReportOdpsService;
 import com.xuanhuo.service.WeeklyReportService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -28,14 +30,14 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     private WeeklyReportResult result;
     private StaticDate staticDate;
 
-    private WeeklyReportService weeklyReportService;
+    private WeeklyReportOdpsService weeklyReportOdpsService;
 
     @Value("${report.serializable-file}")
     private String serializableFile;
 
     public WeeklyReportResultBuilderImpl(StaticDate staticDate){
         this.staticDate = staticDate;
-        this.weeklyReportService = SpringApplicationContextUtil.getBean(WeeklyReportService.class);
+        this.weeklyReportOdpsService = SpringApplicationContextUtil.getBean(WeeklyReportOdpsService.class);
     }
 
 
@@ -316,11 +318,17 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             Map<String,String> param = new HashMap<>();
             param.put("bbbm",ReportConstants.ALIZB_CODE);
             param.put("zbbm",entry.getKey());
-            param.put("ksrq",ksrq);
-            param.put("jsrq",jsrq);
-            weeklyReportService.callSqlFunction(param);
+            SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                param.put("ksrq",format2.format(format1.parse(ksrq)) + " 00:00:00");
+                param.put("jsrq",format2.format(format1.parse(jsrq)) + " 23:59:59");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            weeklyReportOdpsService.callSqlFunction(param);
             logger.debug("======bbbm:{},zbbm:{},ksrq:{},jsrq:{}。获取的SQL:{}--{}",param.get("bbbm"),param.get("zbbm"),param.get("ksrq"),param.get("jsrq"),entry.getValue(),param.get("sql"));
-            Future<List<Map<String, Object>>> sdfzSqlResult = weeklyReportService.getSDFZSqlResult(param.get("sql"));
+            Future<List<Map<String, Object>>> sdfzSqlResult = weeklyReportOdpsService.getSDFZSqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),sdfzSqlResult);
         }
         for(Map.Entry<String, Future<List<Map<String, Object>>>> entry : futureMap.entrySet()){
@@ -339,9 +347,9 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     private Map<String,Object> getHiveLogData(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
         Map<String,Object> logReciveResult = new HashMap<>();
         //移动
-        Future<List<Map<String, Object>>> ydResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"移动");
-        Future<List<Map<String, Object>>> ltResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"联通");
-        Future<List<Map<String, Object>>> dxResult = weeklyReportService.getHiveLogData(ksrq, jsrq,"电信");
+        Future<List<Map<String, Object>>> ydResult = weeklyReportOdpsService.getSDFZLogData(ksrq, jsrq,"移动");//山东移动
+        Future<List<Map<String, Object>>> ltResult = weeklyReportOdpsService.getSDFZLogData(ksrq, jsrq,"联通");//山东联通
+        Future<List<Map<String, Object>>> dxResult = weeklyReportOdpsService.getSDFZLogData(ksrq, jsrq,"电信");//山东电信
 
         logReciveResult.put("移动日志接入量",ydResult.get());
         logReciveResult.put("联通日志接入量",ltResult.get());
@@ -356,7 +364,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      */
     private Map<String,Object> select4weekwarn(StaticDate staticDate) throws ExecutionException, InterruptedException {
         Map<String,Object> sdfzResult = new HashMap<>();
-        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportService.select4weekwarn(staticDate);
+        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportOdpsService.select4weekwarn(staticDate);
         sdfzResult.put("预警数据近一周的活跃网站数量统计",fourWeekWarn.get());
         return sdfzResult;
     }
@@ -368,7 +376,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      */
     private Map<String,Object> select4weekwarnTrend(StaticDate staticDate) throws ExecutionException, InterruptedException {
         Map<String,Object> sdfzResult = new HashMap<>();
-        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportService.select4weekwarnTrend(staticDate);
+        Future<List<Map<String, String>>> fourWeekWarn = weeklyReportOdpsService.select4weekwarnTrend(staticDate);
         sdfzResult.put("预警数据近四周变化趋势统计",fourWeekWarn.get());
         return sdfzResult;
     }
@@ -509,8 +517,8 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             param.put("zbbm",entry.getKey());
             param.put("ksrq",ksrq);
             param.put("jsrq",jsrq);
-            weeklyReportService.callSqlFunction(param);
-            Future<List<Map<String, Object>>> gdata3SqlResult = weeklyReportService.getGdata3SqlResult(param.get("sql"));
+            weeklyReportOdpsService.callSqlFunction(param);
+            Future<List<Map<String, Object>>> gdata3SqlResult = weeklyReportOdpsService.getGdata3SqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),gdata3SqlResult);
 
         }
@@ -529,7 +537,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     private Map<String,List<Map<String, String>>> getAppNet(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
         Map<String,List<Map<String, String>>> futureMap = new HashMap<>();
 
-        Future<List<Map<String, String>>> appNet = weeklyReportService.getAppNet(ksrq, jsrq);
+        Future<List<Map<String, String>>> appNet = weeklyReportOdpsService.getAppNet(ksrq, jsrq);
         futureMap.put("appnet",appNet.get());
         return futureMap;
     }
@@ -618,9 +626,9 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             param.put("zbbm",entry.getKey());
             param.put("ksrq",ksrq);
             param.put("jsrq",jsrq);
-            weeklyReportService.callSqlFunction(param);
+            weeklyReportOdpsService.callSqlFunction(param);
             logger.debug("======bbbm:{},zbbm:{},ksrq:{},jsrq:{}。获取的SQL:{}",param.get("bbbm"),param.get("zbbm"),param.get("ksrq"),param.get("jsrq"),param.get("sql"));
-            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportService.getHiveSqlResult(param.get("sql"));
+            Future<List<Map<String, Object>>> hiveSqlResult = weeklyReportOdpsService.getHiveSqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),hiveSqlResult);
 
         }
@@ -638,7 +646,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      */
     private Map<String,Object> getHybbzzl(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
         Map<String,Object> hiveResult = new HashMap<>();
-        Future<Map<String, String>> hybbzzl = weeklyReportService.getHybbzzl(ksrq,jsrq);
+        Future<Map<String, String>> hybbzzl = weeklyReportOdpsService.getHybbzzl(ksrq,jsrq);
         hiveResult.put("黑样本本周总量",hybbzzl.get());
         return hiveResult;
     }
@@ -649,7 +657,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      */
     private Map<String,Object> getHybkljzl() throws ExecutionException, InterruptedException {
         Map<String,Object> hiveResult = new HashMap<>();
-        Future<Map<String, String>> hybbzzl = weeklyReportService.getHybkljzl();
+        Future<Map<String, String>> hybbzzl = weeklyReportOdpsService.getHybkljzl();
         hiveResult.put("黑样本累计总量",hybbzzl.get());
         return hiveResult;
     }
@@ -660,7 +668,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
      */
     private Map<String,Object> getHybkFourWeek(String ksrq,String jsrq) throws ExecutionException, InterruptedException {
         Map<String,Object> hiveResult = new HashMap<>();
-        Future<List<Map<String, String>>> hybkFourWeek = weeklyReportService.getHybkFourWeek(ksrq,jsrq);
+        Future<List<Map<String, String>>> hybkFourWeek = weeklyReportOdpsService.getHybkFourWeek(ksrq,jsrq);
         hiveResult.put("黑样本库近四周数据",hybkFourWeek.get());
         return hiveResult;
     }
@@ -672,7 +680,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
     private Map<String,Object> getLogQuality(String rq) throws ExecutionException, InterruptedException {
 
         Map<String,Object> logQuaRes = new HashMap<>();
-        Future<List<Map<String, String>>> hiveLogData = weeklyReportService.getLogQuality(rq);
+        Future<List<Map<String, String>>> hiveLogData = weeklyReportOdpsService.getLogQuality(rq);
         logQuaRes.put("互联网日志质量统计",hiveLogData.get());
         logger.debug("互联网日志质量统计{}",hiveLogData.get());
         return logQuaRes;
@@ -797,10 +805,19 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             //过滤后的http = 总量 - sni不为空
             double hostData3 = NumberUtil.round(totalData2 - sslData3,2).doubleValue();
 
-            String hostData2 = NumberUtil.roundStr(hostData1/totalData1,2);
-            String hostData4 = NumberUtil.roundStr(hostData3/totalData2,2);
-            String sslData2 = NumberUtil.roundStr(sslData1/totalData1,2);
-            String sslData4 = NumberUtil.roundStr(sslData3/totalData2,2);
+            String hostData2 = "0.00";
+            String hostData4 = "0.00";
+            String sslData2 = "0.00";
+            String sslData4 = "0.00";
+            if (totalData1 != 0) {
+                hostData2 = NumberUtil.roundStr(hostData1 / totalData1, 2);
+                sslData2 = NumberUtil.roundStr(sslData1 / totalData1, 2);
+            }
+            if (totalData2 != 0) {
+
+                hostData4 = NumberUtil.roundStr(hostData3 / totalData2, 2);
+                sslData4 = NumberUtil.roundStr(sslData3 / totalData2, 2);
+            }
 
             hostNotNullMap.put("data2",hostData2);
             hostNotNullMap.put("data3",String.valueOf(hostData3));
@@ -827,9 +844,9 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             param.put("zbbm",entry.getKey());
             param.put("ksrq",ksrq);
             param.put("jsrq",jsrq);
-            weeklyReportService.callSqlFunction(param);
+            weeklyReportOdpsService.callSqlFunction(param);
             logger.debug("======bbbm:{},zbbm:{},ksrq:{},jsrq:{}。获取的SQL:{}",param.get("bbbm"),param.get("zbbm"),param.get("ksrq"),param.get("jsrq"),param.get("sql"));
-            Future<List<Map<String, Object>>> ymfxypSqlResult = weeklyReportService.getYMFXYPSqlResult(param.get("sql"));
+            Future<List<Map<String, Object>>> ymfxypSqlResult = weeklyReportOdpsService.getYMFXYPSqlResult(param.get("sql"));
             futureMap.put(entry.getValue(),ymfxypSqlResult);
 
         }
@@ -849,7 +866,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         Map<String,List<Map<String, String>>> futureMap = new HashMap<>();
         String ksrqFormat = DateUtil.format(DateUtil.parse(ksrq),"yyyy-MM-dd");
         String jsrqFormat = DateUtil.format(DateUtil.parse(jsrq),"yyyy-MM-dd");
-        Future<List<Map<String, String>>> appNet = weeklyReportService.getQQWX(ksrqFormat, jsrqFormat);
+        Future<List<Map<String, String>>> appNet = weeklyReportOdpsService.getQQWX(ksrqFormat, jsrqFormat);
         futureMap.put("qqwx",appNet.get());
         return futureMap;
     }

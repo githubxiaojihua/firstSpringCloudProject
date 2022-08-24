@@ -41,7 +41,7 @@ public class MapUtil {
      * @param colData
      * @param dataX
      */
-    public static void exchangeCol2DataXByDate(List<Map<String,String>> colData, Map<String,String> dataX, String ksrqStr){
+        public static void exchangeCol2DataXByDate(List<Map<String,String>> colData, Map<String,String> dataX, String ksrqStr){
         //初始化newData
         if(dataX.entrySet().size() == 0){
             dataX.put("data1","0");
