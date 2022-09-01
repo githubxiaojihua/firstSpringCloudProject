@@ -753,6 +753,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             double sslData1 = 0.0;
             double totalData2 = 0.0;
             double sslData3 = 0.0;
+            double hostData3 = 0.0;
 
 
             for(Map<String,String> logData : logQuality){
@@ -761,7 +762,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
                 if(StrUtil.equals(logData.get("num_type"),"全量数据")){
 
 
-                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
+                    if(StrUtil.equals(logData.get("tablename"),"hlw_fz.t_logs")){
                         totalData1 = Double.parseDouble(logData.get("num"))/100000000;
                         String data1Str = NumberUtil.roundStr(totalData1,2);
                         totalMap.put("data1", data1Str);
@@ -777,19 +778,20 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
                 }
 
                 //https
-                if(StrUtil.equals(logData.get("num_type"),"ssl_sni不为空")){
+                //20220831换成http，https=总量-http
+                if(StrUtil.equals(logData.get("num_type"),"host不为空")){
 
 
-                    if(StrUtil.equals(logData.get("tablename"),"hajx_hlw_hive.t_logs")){
-                        sslData1 = Double.parseDouble(logData.get("num"))/100000000;
-                        String data1 = NumberUtil.roundStr(sslData1,2);
-                        sslNotNullMap.put("data1", data1);
+                    if(StrUtil.equals(logData.get("tablename"),"hlw_fz.t_logs")){
+                        hostData1 = Double.parseDouble(logData.get("num"))/100000000;
+                        String data1 = NumberUtil.roundStr(hostData1,2);
+                        hostNotNullMap.put("data1", data1);
                     }else{
-                        sslData3 =Double.parseDouble(logData.get("num"))/100000000;
-                        String data3 = NumberUtil.roundStr(sslData3,2);
-                        sslNotNullMap.put("data3", data3);
+                        hostData3 =Double.parseDouble(logData.get("num"))/100000000;
+                        String data3 = NumberUtil.roundStr(hostData3,2);
+                        hostNotNullMap.put("data3", data3);
                     }
-                    quality.put("ssl_sni_not_null",sslNotNullMap);
+                    quality.put("host_not_null",hostNotNullMap);
                 }
 
 
@@ -797,13 +799,14 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             }
 
             //http=总量-sni不为空
-            hostData1 = totalData1 - sslData1;
-            String data1 = NumberUtil.roundStr(hostData1,2);
-            hostNotNullMap.put("data1", data1);
-            quality.put("host_not_null",hostNotNullMap);
+            //20220831https=总量-http
+            sslData1 = totalData1 - hostData1;
+            String data1 = NumberUtil.roundStr(sslData1,2);
+            sslNotNullMap.put("data1", data1);
+            quality.put("ssl_sni_not_null",sslNotNullMap);
 
             //过滤后的http = 总量 - sni不为空
-            double hostData3 = NumberUtil.round(totalData2 - sslData3,2).doubleValue();
+            sslData3 = NumberUtil.round(totalData2 - hostData3,2).doubleValue();
 
             String hostData2 = "0.00";
             String hostData4 = "0.00";
@@ -820,10 +823,11 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
             }
 
             hostNotNullMap.put("data2",hostData2);
-            hostNotNullMap.put("data3",String.valueOf(hostData3));
+            //hostNotNullMap.put("data3",String.valueOf(hostData3));
             hostNotNullMap.put("data4",hostData4);
 
             sslNotNullMap.put("data2",sslData2);
+            sslNotNullMap.put("data3",String.valueOf(sslData3));
             sslNotNullMap.put("data4",sslData4);
         }
     }

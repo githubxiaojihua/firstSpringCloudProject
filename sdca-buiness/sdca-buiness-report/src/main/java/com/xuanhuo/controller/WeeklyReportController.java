@@ -110,7 +110,7 @@ public class WeeklyReportController extends BaseController {
         return AjaxResult.success(weeklyReportResult);
     }
 
-    @Scheduled(cron = "0 0 20 * * *")
+    //@Scheduled(cron = "0 0 20 * * *")
     public AjaxResult getWeeklyReportData() throws ExecutionException, InterruptedException,Exception {
         return this.getWeeklyReportData(DateUtil.format(new Date(),"yyyyMMdd"),true);
     }
