@@ -51,7 +51,7 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         result.setStart_date(staticDate.getWarnStartDate());
         result.setEnd_date(staticDate.getWarnEndDate());
         result.setWeek(staticDate.getWeek());
-
+        result.setZd(staticDate.getZd());
         //初始化qq_wx
         Map<String,String> qq = new LinkedHashMap<>();
         qq.put("data1","0");
@@ -725,7 +725,17 @@ public class WeeklyReportResultBuilderImpl implements IWeeklyReportResultBuilder
         MapUtil.exchangeCol2DataXByDate(ydJrl,yd,staticDate.getWarnStartDate());
         MapUtil.exchangeCol2DataXByDate(dxJrl,dx,staticDate.getWarnStartDate());
 
-
+        int hlwrzzl = 0;
+        for(Map.Entry<String,String> entry : lt.entrySet()){
+            hlwrzzl = hlwrzzl + Integer.parseInt(entry.getValue());
+        }
+        for(Map.Entry<String,String> entry : yd.entrySet()){
+            hlwrzzl = hlwrzzl + Integer.parseInt(entry.getValue());
+        }
+        for(Map.Entry<String,String> entry : dx.entrySet()){
+            hlwrzzl = hlwrzzl + Integer.parseInt(entry.getValue());
+        }
+        weeklyReportResult.setHlwrzsjzl(String.valueOf(hlwrzzl));
 
         List<Map<String, String>> logQuality =  (List<Map<String, String>>)getHiveResult.get("互联网日志质量统计");
         if(logQuality != null){

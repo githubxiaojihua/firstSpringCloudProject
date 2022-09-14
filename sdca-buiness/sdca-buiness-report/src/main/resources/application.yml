@@ -33,4 +33,5 @@ logging:
 #报表配置
 report:
   serializable-file: ./serializableFile/weeklyReport.ser
+  serializable-po: ./serializableFile/WeeklySeri.ser
 

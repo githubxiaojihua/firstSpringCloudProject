@@ -3,7 +3,11 @@ package com.xuanhuo.pojo;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.unit.DataSizeUtil;
 import cn.hutool.core.util.StrUtil;
+import com.xuanhuo.common.core.utils.SerializableUtil;
+import com.xuanhuo.common.reportResult.WeeklyReportResult;
+import com.xuanhuo.domain.WeeklySeri;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +27,7 @@ public class StaticDate {
     private String month;
     private String day;
     private String week;
+    private String zd;
 
     //近四周时间
     private String week1Start;
@@ -61,8 +66,20 @@ public class StaticDate {
 
         this.setMonth(DateUtil.format(staticData,"MM"));
         this.setDay(DateUtil.format(staticData,"dd"));
-        this.setWeek(String.valueOf(DateUtil.weekOfYear(DateUtil.parse(warnStartDate,"yyyyMMdd")) -1));
+        this.setWeek(String.valueOf(DateUtil.weekOfYear(DateUtil.parse(warnStartDate,"yyyyMMdd"))));
+        SerializableUtil<WeeklySeri> seriSerializableUtil = new SerializableUtil<>();
+        WeeklySeri weeklySeri = seriSerializableUtil.deSerializableObjectFromFile("./serializableFile/WeeklySeri.ser", new Class[]{WeeklySeri.class}, WeeklySeri.class);
+        if(weeklySeri != null){
+            this.setZd(weeklySeri.getZd());
+            weeklySeri.setZd(String.valueOf(Integer.parseInt(weeklySeri.getZd()) + 1));
+            seriSerializableUtil.serializableObjectToFile(weeklySeri,"./serializableFile/WeeklySeri.ser");
 
+        }else{
+            WeeklySeri weeklySeriTmp = new WeeklySeri();
+            weeklySeriTmp.setZd("88");
+            this.setZd(weeklySeriTmp.getZd());
+            seriSerializableUtil.serializableObjectToFile(weeklySeriTmp,"./serializableFile/WeeklySeri.ser");
+        }
         this.setWeek1Start(DateUtil.format(DateUtil.offsetWeek(staticData,-4),"yyyyMMdd"));
         this.setWeek1End(DateUtil.format(DateUtil.offsetDay(DateUtil.parse(week1Start,"yyyyMMdd"),6),"yyyyMMdd"));
         this.setWeek2Start(DateUtil.format(DateUtil.offsetWeek(staticData,-3),"yyyyMMdd"));

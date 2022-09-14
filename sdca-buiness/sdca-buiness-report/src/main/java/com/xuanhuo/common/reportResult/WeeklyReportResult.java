@@ -19,6 +19,7 @@ public class WeeklyReportResult implements Serializable {
     private String start_date;
     private String end_date;
     private String week;
+    private String zd;
 
     private String app;
     private String net;
@@ -28,6 +29,8 @@ public class WeeklyReportResult implements Serializable {
     private Map<String,String> lt = new LinkedHashMap<>();
     private Map<String,String> yd = new LinkedHashMap<>();
     private Map<String,String> dx = new LinkedHashMap<>();
+
+    private String hlwrzsjzl;
 
     private List<Map<String,Object>> table = new ArrayList<>();
     private List<Map<String,Object>> table_week = new ArrayList<>();
